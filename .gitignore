@@ -1,0 +1,9 @@
+# Keep this repository limited to the public demo and its Pages workflow.
+*
+!.gitignore
+!README.md
+!.github/
+!.github/workflows/
+!.github/workflows/pages.yml
+!public/
+!public/**
