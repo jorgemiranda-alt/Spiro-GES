@@ -7,7 +7,7 @@ const UI = {apFilter:"Pending", apSel:new Set(), jFilter:{epic:"",ev:"",spec:"",
 function uid(p){ S.seq=(S.seq||1000)+1; return p+S.seq; }
 function seedDay(date, pattern){ return pattern.map(([time,type,proj,task])=>({id:"p"+Math.random().toString(36).slice(2,9),t:`${date} ${time}`,type,proj,task,src:"Seed",sync:"seed"})); }
 function seed(){
-  const st={v:3,persona:"ava",lang:"en",view:"punch",period:0,seq:1000,settings:{simDuplicatePunchError:false,empEdit:true,tags:true,hideViewAs:false},
+  const st={v:3,persona:"ava",lang:"en",view:"punch",period:0,seq:1000,settings:{simDuplicatePunchError:false,empEdit:false,tags:true,hideViewAs:false},
     punches:{ava:[],lukas:[]},comments:{ava:{},lukas:{}},tcAppr:{},hidden:{},grid:{zofia:{},maya:{}},approvals:[],txns:[],audit:[]};
   const prev=periodDays(-1), cur=periodDays(0), today=todayStr();
   // Ava — previous week tells the exception story
@@ -41,7 +41,9 @@ function seed(){
 }
 function load(){ try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ const s=JSON.parse(raw); if(s&&s.v===3&&s.seedWeek===periodKey(0)) return s; } }catch(e){} const s=seed(); s.seedWeek=periodKey(0); return s; }
 function persist(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(S)); }catch(e){} }
-S = load(); S.settings=S.settings||{}; delete S.settings.simTimeout; S.settings.simDuplicatePunchError=!!S.settings.simDuplicatePunchError;
+S = load(); S.settings=S.settings||{};
+S.settings.empEdit=false; // Punch editing remains disabled, including saved demo sessions.
+delete S.settings.simTimeout; S.settings.simDuplicatePunchError=!!S.settings.simDuplicatePunchError;
 const obsoleteUkgTransactions=new Set((S.txns||[]).filter(tx=>tx.action==="Read timecard before retry"||["Timeout","Reconciling","Reconciled"].includes(tx.status)).map(tx=>tx.id));
 S.txns=(S.txns||[]).filter(tx=>!obsoleteUkgTransactions.has(tx.id));
 S.audit=(S.audit||[]).filter(entry=>!String(entry.what||"").startsWith("Timeout reconciled for "));

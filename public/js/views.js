@@ -248,7 +248,6 @@ function viewTimecard(){
     const dow=parseYmd(d.date).getDay(), wk=dow===0||dow===6, isT=d.date===todayStr();
     const segs=d.segs.length?d.segs:[null];
     const excCodes=new Set(d.exc.map(e=>e.code));
-    const note=(S.comments[emp]||{})[d.date];
     segs.forEach((s,i)=>{
       const first=i===0,last=i===segs.length-1;
       const inPunch=s&&s.in.p, outPunch=s&&s.out&&s.out.p;
@@ -266,9 +265,9 @@ function viewTimecard(){
       const inBtn=s?`<button type="button" class="cell-btn tc-punch-cell ${lateCell||brkCell} ${inPunch.src==="Edit"||inPunch.edited?"edited":""}" ${punchAttrs(inPunch)}>${fmtClock(s.in.t)}${s.in.kind==="Break end"?' <span class="sub">(brk)</span>':""}</button>`:`<div class="c"></div>`;
       const transferLabel=[projectCode,taskLabel,lobLabel&&lobLabel!==taskLabel?lobLabel:""].filter(Boolean).join(" · ")||t("noProject");
       const xfer=s?`<button type="button" class="tc-transfer-cell" data-act="tcTransferMenu" data-date="${esc(d.date)}" data-id="${esc(inPunch&&inPunch.id||"")}" data-time-start="${esc(fmtClock(s.in.t))}" data-time-end="${esc(s.out?fmtClock(s.out.t):s.live?"In progress":s.missing?t("missed"):"—")}" data-project="${esc(projectCode)}" data-project-name="${esc(projectName)}" data-task="${esc(taskLabel)}" data-lob="${esc(lobLabel)}" data-lc-project="${esc(laborProject)}" data-lc-task="${esc(lobLabel)}" data-lc-timecode="${esc(labor.tc||"")}" data-lc-function="${esc(labor.func||"")}" data-locked="${locked}" aria-haspopup="dialog" aria-expanded="false" aria-label="Transfer details: ${esc(transferLabel)}"><span class="tc-transfer-line">${s.in.kind==="Transfer"?icon("xfer",15):""}<span class="tc-transfer-label">${esc(transferLabel)}</span></span></button>`:`<div class="c"></div>`;
-      const outBtn=!s?`<div class="c"></div>`:s.live?`<div class="c"><span class="chip ok"><span class="dot"></span>In progress</span></div>`:s.missing?`<button class="cell-btn x-miss" data-act="fixMissed" data-date="${d.date}" data-hl="${d.exc.some(e=>e.code==="MISSED_OUT_PUNCH")?"exceptions":""}">${esc(t("missed"))}</button>`:`<button type="button" class="cell-btn tc-punch-cell ${earlyCell} ${outPunch.src==="Edit"||outPunch.edited?"edited":""}" ${punchAttrs(outPunch)}>${fmtClock(s.out.t)}${s.out.kind==="Break"?' <span class="sub">(brk)</span>':""}</button>`;
+      const outBtn=!s?`<div class="c"></div>`:s.live?`<div class="c"><span class="chip ok"><span class="dot"></span>In progress</span></div>`:s.missing?`<div class="c x-miss"><span>${esc(t("missed"))}</span></div>`:`<button type="button" class="cell-btn tc-punch-cell ${earlyCell} ${outPunch.src==="Edit"||outPunch.edited?"edited":""}" ${punchAttrs(outPunch)}>${fmtClock(s.out.t)}${s.out.kind==="Break"?' <span class="sub">(brk)</span>':""}</button>`;
       rows+=`<tr class="${first?"day-first":""} ${wk?"weekend":""} ${isT?"today":""} ${locked?"locked":""}">
-        <td class="date-col">${first?`<div class="c" style="justify-content:space-between"><b style="font-weight:600;white-space:nowrap">${esc(fmtDay(d.date))}</b><span class="row" style="gap:0"><button class="icon-btn ${note?"on":""}" data-act="comment" data-date="${d.date}" title="${note?esc(note):esc(t("comment"))}" aria-label="${esc(t("comment"))}">${icon("note",16)}</button>${locked?"":`<button class="icon-btn" data-act="addPunch" data-date="${d.date}" title="Add punch" aria-label="Add punch">${icon("plus",16)}</button>`}</span></div>`:`<div class="c"></div>`}</td>
+        <td class="date-col">${first?`<div class="c"><b style="font-weight:600;white-space:nowrap">${esc(fmtDay(d.date))}</b></div>`:`<div class="c"></div>`}</td>
         <td>${inBtn}</td><td>${xfer}</td><td>${outBtn}</td>
         <td><div class="c tot num">${s&&s.hours?fmtH(s.hours):""}</div></td>
         <td><div class="c tot num">${last&&d.daily?fmtH(d.daily):""}</div></td>

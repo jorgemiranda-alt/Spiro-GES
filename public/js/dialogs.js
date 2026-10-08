@@ -13,14 +13,10 @@ function closeTcDetailsPopover(returnFocus=false){
   tcDetailsTrigger=null;
   if(returnFocus&&trigger&&trigger.isConnected) trigger.focus();
 }
-function tcDetailsMarkup(title,details,laborFields,date,id,locked){
-  return `<header><h3>${esc(title)}</h3></header>
+function tcDetailsMarkup(title,details,laborFields){
+  return `<header><h3>${esc(title)}</h3><button type="button" class="icon-btn" data-act="closeTcDetails" aria-label="Close details">${icon("x",18)}</button></header>
     <dl class="tc-transfer-details">${details.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>
-    <section class="tc-transfer-category"><h4>Labor category</h4>${laborFields.length?`<dl class="tc-transfer-category-details">${laborFields.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`:`<p class="sub">No labor category recorded.</p>`}</section>
-    <div class="tc-transfer-actions" role="group" aria-label="Punch actions">
-      <button type="button" data-act="editPunch" data-id="${esc(id||"")}" data-date="${esc(date)}" ${locked?"disabled":""}>${icon("edit",20)}<span>Edit</span></button>
-      <button type="button" data-act="comment" data-date="${esc(date)}">${icon("note",20)}<span>Comments</span></button>
-    </div>`;
+    <section class="tc-transfer-category"><h4>Labor category</h4>${laborFields.length?`<dl class="tc-transfer-category-details">${laborFields.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`:`<p class="sub">No labor category recorded.</p>`}</section>`;
 }
 function placeTcDetailsPopover(el,pop,point={}){
   tcDetailsTrigger=el; el.setAttribute("aria-expanded","true"); el.setAttribute("aria-controls","tcDetailsPopover");
@@ -36,10 +32,10 @@ function openTcTransferPopover(el,point={}){
   const date=el.dataset.date, project=[el.dataset.project,el.dataset.projectName].filter(Boolean).join(" · ")||t("noProject");
   const task=el.dataset.task||"";
   const laborFields=[["Project",el.dataset.lcProject],["Task / LOB",el.dataset.lcTask],["Timecard Code",el.dataset.lcTimecode],["Function",el.dataset.lcFunction]].filter(([,value])=>value);
-  const title="Punch actions", details=[["Date",fmtDay(date)],["Time",`${el.dataset.timeStart||"—"} – ${el.dataset.timeEnd||"—"}`],["Project",project],...(task?[["Task",task]]:[])];
+  const title="Transfer details", details=[["Date",fmtDay(date)],["Time",`${el.dataset.timeStart||"—"} – ${el.dataset.timeEnd||"—"}`],["Project",project],...(task?[["Task",task]]:[])];
   const pop=document.createElement("section");
   pop.id="tcDetailsPopover"; pop.className="tc-transfer-popover"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label",title);
-  pop.innerHTML=tcDetailsMarkup(title,details,laborFields,date,el.dataset.id,el.dataset.locked==="true");
+  pop.innerHTML=tcDetailsMarkup(title,details,laborFields);
   document.body.appendChild(pop);
   placeTcDetailsPopover(el,pop,point);
 }
@@ -47,10 +43,10 @@ function openTcPunchPopover(el,point={}){
   closeTcDetailsPopover();
   const date=el.dataset.date, type=el.dataset.type||"Punch", time=el.dataset.time||"—";
   const laborFields=[["Project",el.dataset.lcProject],["Task / LOB",el.dataset.lcTask],["Timecard Code",el.dataset.lcTimecode],["Function",el.dataset.lcFunction]].filter(([,value])=>value);
-  const details=[["Date",fmtDay(date)],["Time",time],["Punch",type],...(el.dataset.exceptions?[["Exceptions",el.dataset.exceptions]]:[])], title="Punch actions";
+  const details=[["Date",fmtDay(date)],["Time",time],["Punch",type],...(el.dataset.exceptions?[["Exceptions",el.dataset.exceptions]]:[])], title="Punch details";
   const pop=document.createElement("section");
   pop.id="tcDetailsPopover"; pop.className="tc-transfer-popover"; pop.setAttribute("role","dialog"); pop.setAttribute("aria-label",title);
-  pop.innerHTML=tcDetailsMarkup(title,details,laborFields,date,el.dataset.id,el.dataset.locked==="true");
+  pop.innerHTML=tcDetailsMarkup(title,details,laborFields);
   document.body.appendChild(pop);
   placeTcDetailsPopover(el,pop,point);
 }

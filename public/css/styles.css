@@ -630,7 +630,7 @@ table.tc.ukg-tc .tc-transfer-cell:focus-visible{position:relative;z-index:2;outl
 .tc-transfer-line>svg{flex:none;color:var(--primary)}
 .tc-transfer-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tc-transfer-popover{position:fixed;z-index:80;width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:var(--surface);border:1px solid var(--primary);border-radius:8px;box-shadow:0 14px 36px rgba(28,38,34,.2);color:var(--ink)}
-.tc-transfer-popover>header{padding:11px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.tc-transfer-popover>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
 .tc-transfer-popover>header h3{font-size:var(--type-card-title);line-height:var(--leading-card-title);font-weight:var(--weight-medium)}
 .tc-transfer-details{display:grid;gap:11px;margin:0;padding:14px 16px 16px}
 .tc-transfer-details>div{display:grid;gap:2px;min-width:0}
@@ -643,10 +643,6 @@ table.tc.ukg-tc .tc-transfer-cell:focus-visible{position:relative;z-index:2;outl
 .tc-transfer-category-details dt{color:var(--muted);font-size:var(--type-meta);line-height:var(--leading-meta)}
 .tc-transfer-category-details dd{margin:0;font-size:var(--type-label);line-height:var(--leading-label);overflow-wrap:anywhere}
 .tc-transfer-category>.sub{margin:0;font-size:var(--type-label);line-height:var(--leading-label)}
-.tc-transfer-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--line);padding:8px}
-.tc-transfer-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;border:0;border-radius:6px;background:transparent;color:var(--primary);font-size:var(--type-label);line-height:var(--leading-label);font-weight:600}
-.tc-transfer-actions button:hover:not(:disabled){background:var(--primary-soft)}
-.tc-transfer-actions button:disabled{color:var(--faint);cursor:not-allowed;opacity:.55}
 
 /* Shared timeclock kiosk */
 .shell.kiosk-mode{display:block;min-height:100vh;min-height:100svh;background:#fffdf5}

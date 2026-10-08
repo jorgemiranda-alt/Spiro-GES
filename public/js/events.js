@@ -1,3 +1,5 @@
+// My Timecard is read-only while employee punch-edit access is an open decision.
+const TIMECARD_DISABLED_ACTIONS=new Set(["editPunch","addPunch","fixMissed","savePunch","delPunch","comment","saveComment","approveTc","removeAppr"]);
 document.addEventListener("click",e=>{
   if(UI.punchOdooOpen&&!e.target.closest(".punch-project-picker")){
     UI.punchOdooOpen=false; UI.punchOdooQuery="";
@@ -6,6 +8,7 @@ document.addEventListener("click",e=>{
   }
   const el=e.target.closest("[data-act]"); if(!el) return;
   const a=el.dataset.act, emp=S.persona;
+  if(S.view==="timecard"&&TIMECARD_DISABLED_ACTIONS.has(a)) return;
   if(a==="toast-dismiss"){ toastDismiss(); return; }
   if(el.closest("#toast")) toastDismiss();
   if(el.tagName==="SELECT"||(el.tagName==="INPUT"&&el.type!=="checkbox")) return;
@@ -33,6 +36,7 @@ document.addEventListener("click",e=>{
     case "closeDrawer": UI.drawer=false; UI.nt=null; $("#layer").innerHTML=""; break;
     case "ovl": if(e.target===el){ const refresh=!!UI.odooManageMode; UI.odooManageMode=""; closeDialog(); if(refresh){ render(); setTimeout(()=>document.getElementById("punchOdooProjectTrigger")?.focus(),0); } } break;
     case "closeDlg": { const refresh=!!UI.odooManageMode; UI.odooManageMode=""; closeDialog(); if(refresh){ render(); setTimeout(()=>document.getElementById("punchOdooProjectTrigger")?.focus(),0); } break; }
+    case "closeTcDetails": closeTcDetailsPopover(true); break;
     case "tcTransferMenu": openTcTransferPopover(el,{x:e.clientX,y:e.clientY,focus:e.detail===0}); break;
     case "tcPunchMenu": openTcPunchPopover(el,{x:e.clientX,y:e.clientY,focus:e.detail===0}); break;
     case "goPrevTc": S.period=-1; go("timecard"); break;
@@ -187,9 +191,8 @@ function openDrawer(){
   $("#layer").innerHTML=`<div class="overlay" data-act="closeDrawerOvl" style="place-items:stretch end;padding:0"><aside class="drawer" role="dialog" aria-label="Demo settings"><header><h3>Demo settings</h3><button class="icon-btn" data-act="closeDrawer" aria-label="Close">${icon("x")}</button></header><div class="body">
     <label class="toggle"><input type="checkbox" id="setTags" data-act="setTags" ${S.settings.tags?"checked":""}><span><b>Show journey tags</b><small>Dashed IDs link each part of the screen to its journey.</small></span></label>
     <label class="toggle"><input type="checkbox" id="setHideViewAs" data-act="setHideViewAs" ${S.settings.hideViewAs?"checked":""}><span><b>Hide “Viewing as”</b><small>Hides the persona label and selector.</small></span></label>
-    <label class="toggle"><input type="checkbox" id="setEdit" data-act="setEdit" ${S.settings.empEdit?"checked":""}><span><b>Employees can correct their own punches</b><small>Open question Q-05. Off routes corrections to the manager.</small></span></label>
     <label class="toggle"><input type="checkbox" id="setPunchError" data-act="setPunchError" ${S.settings.simDuplicatePunchError?"checked":""}><span><b>Simulate a duplicate-punch error from UKG</b><small>The next Punch In or Punch Out displays the returned error (PU-08).</small></span></label>
-    <div class="stack"><b>Try these paths</b><span class="sub">1. Ava › Punch: punch in, transfer, break, punch out. 2. Ava › My Timecard › Previous period: fix Thursday's missed punch, approve. 3. Oliver › Approvals: approve, edit, reject with a note. 4. Zofia › Project hours: see the rejection, fix, resubmit. 5. Lukas › Kiosk: badge, scan jobs, try MUC-1999.</span></div>
+    <div class="stack"><b>Try these paths</b><span class="sub">1. Ava › Punch: punch in, transfer, break, punch out. 2. Ava › My Timecard › Previous period: review punch details and totals. 3. Oliver › Approvals: approve, edit, reject with a note. 4. Zofia › Project hours: see the rejection, fix, resubmit. 5. Lukas › Kiosk: badge, scan jobs, try MUC-1999.</span></div>
     ${toDemoSettings()}
     <button class="btn danger" data-act="reset">Reset demo data</button>
     <p class="sub">Data stays in this browser only. Nothing is sent to UKG or Odoo; calls are simulated and logged in the UKG sync tabs.</p></div></aside></div>`;
@@ -213,7 +216,6 @@ document.addEventListener("change",e=>{
     case "toggleArch": UI.showArch=el.checked; render(); break;
     case "setTags": S.settings.tags=el.checked; document.body.classList.toggle("hide-tags",!el.checked); persist(); break;
     case "setHideViewAs": S.settings.hideViewAs=el.checked; document.body.classList.toggle("hide-view-as",el.checked); persist(); break;
-    case "setEdit": S.settings.empEdit=el.checked; persist(); break;
     case "setPunchError": S.settings.simDuplicatePunchError=el.checked; persist(); render(); break;
     case "jEpic": UI.jFilter.epic=el.value; render(); break;
     case "jSpec": UI.jFilter.spec=el.value; render(); break;
