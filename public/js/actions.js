@@ -35,6 +35,7 @@ appToastRoot?.addEventListener("focusin",()=>clearTimeout(toast.t));
 appToastRoot?.addEventListener("focusout",e=>{if(!appToastRoot.contains(e.relatedTarget))toastResumeTimer();});
 appToastRoot?.addEventListener("keydown",e=>{if(e.key==="Escape")toastDismiss();});
 function showPunchNotice(kind,text){ render(); toast(text,kind==="success"?"success":"error"); }
+function clearPunchNotice(){ toastDismiss(); }
 function go(view){ if(S.view==="kiosk"&&view!=="kiosk") kioskReset(); S.view=view; syncAppRoute(view); render(); window.scrollTo({top:0}); }
 function setPersona(k){ kioskReset(); S.persona=k; S.period=0; UI.submitTried=false; UI.homeShowAll=false; UI.apSel.clear(); toResetUI(); go(PERSONAS[k].land); }
 function flash(key){ if(!key) return; setTimeout(()=>{ const el=document.querySelector(`[data-hl="${key}"]`); if(el){ el.scrollIntoView({behavior:"smooth",block:"center"}); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); } },80); }
