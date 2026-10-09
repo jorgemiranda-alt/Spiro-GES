@@ -187,7 +187,6 @@ h5,h6{font-size:var(--type-label);line-height:var(--leading-label)}
 .xfer-trigger-head{display:flex;align-items:center;gap:8px;min-width:0;margin-bottom:2px}
 .xfer-trigger-label{font-size:var(--type-label);line-height:var(--leading-label);font-weight:600;color:var(--muted)}
 .xfer-status{display:inline-flex;align-items:center;min-height:20px;padding:1px 7px;border-radius:5px;font-size:var(--type-meta);line-height:var(--leading-meta);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-.xfer-status.is-home{background:var(--surface-3);color:var(--muted)}
 .xfer-status.is-next,.xfer-status.is-live{background:var(--primary-soft);color:var(--primary)}
 .xfer-trigger-title{font-size:var(--type-body);line-height:var(--leading-body);font-weight:600;color:var(--ink);overflow-wrap:anywhere}
 .xfer-trigger-detail{font-size:var(--type-support);line-height:var(--leading-support);color:var(--muted);overflow-wrap:anywhere}

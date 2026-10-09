@@ -195,7 +195,7 @@ function punchTransferPicker(emp,L,pending,recentTransfers){
   const current=L.st==="out"?(pending||home):(L.labor||home), curKey=laborKey(current), isHome=curKey===homeKey;
   const onBreak=L.st==="brk", flash=UI.xferFlash; UI.xferFlash=false;
   const open=UI.xferOpen&&!onBreak;
-  let status=t("xferHome"), tone="home";
+  let status="", tone="";
   if(!isHome&&L.st==="out"){ status=t("xferNextPunch"); tone="next"; }
   else if(!isHome){ const from=[...dayPunches(emp,todayStr())].reverse().find(p=>(p.type==="XFER"||p.type==="IN")&&laborKey(p.labor)===curKey); status=from?t("xferSince").replace("{t}",fmtClock(tsTime(from.t))):t("xferCurrent"); tone="live"; }
   const parts=laborParts(current);
@@ -209,7 +209,7 @@ function punchTransferPicker(emp,L,pending,recentTransfers){
     </div>`:"";
   return `<div class="xfer-picker ${open?"is-open":""}">
       <button type="button" id="xferTrigger" class="xfer-trigger ${flash?"is-updated":""}" data-act="xferToggle" aria-haspopup="listbox" aria-expanded="${open?"true":"false"}" ${open?`aria-controls="xferMenu"`:""} ${onBreak?`aria-describedby="xferBreakNote" disabled`:""}>
-        <span class="xfer-trigger-head"><span class="xfer-trigger-label">${esc(t("transfer"))}</span><span class="xfer-status is-${tone}">${esc(status)}</span></span>
+        <span class="xfer-trigger-head"><span class="xfer-trigger-label">${esc(t("transfer"))}</span>${status?`<span class="xfer-status is-${tone}">${esc(status)}</span>`:""}</span>
         <span class="xfer-trigger-title">${esc(parts.title)}</span>
         ${parts.detail?`<span class="xfer-trigger-detail">${esc(parts.detail)}</span>`:""}
         <span class="xfer-trigger-chevron" aria-hidden="true">${icon("down",18)}</span>
