@@ -395,13 +395,13 @@ function viewApprovals(){
   const counts=s=>mine.filter(a=>s==="All"||a.status===s).length;
   const sel=[...UI.apSel].filter(id=>list.some(a=>a.id===id&&a.status==="Pending"));
   return `
-  <div class="banner info">${icon("check")}<div>Showing hourly project time for projects where <b>you are the Line Manager / Project Owner</b>. This is separate from the HR reporting line and from UKG timecard sign-off. ${uj("PA-01")}</div></div>
+  <div class="banner info">${icon("check")}<div>Showing hourly project time for projects where <b>you are the Line Manager / Project Owner</b>. This is separate from the HR reporting line and from UKG timecard sign-off.</div></div>
   <section class="panel" data-hl="approvals">
     <div class="tc-toolbar">
       <div class="tabs" style="border:0;padding:0">${["Pending","Approved","Rejected","All"].map(s=>`<button class="tab ${UI.apFilter===s?"active":""}" data-act="apFilter" data-f="${s}">${esc({Pending:t("pending"),Approved:t("approved"),Rejected:t("rejected"),All:"All"}[s])} (${counts(s)})</button>`).join("")}</div>
       <span style="margin-left:auto"></span>
       <span class="sub">${sel.length} selected</span>
-      <button class="btn sm primary" data-act="apApprove" ${sel.length?"":"disabled"}>${icon("check",16)}${esc(t("approve"))}</button>${uj("PA-02")}
+      <button class="btn sm primary" data-act="apApprove" ${sel.length?"":"disabled"}>${icon("check",16)}${esc(t("approve"))}</button>
     </div>
     ${Object.keys(groups).length?Object.entries(groups).map(([code,items])=>{ const b=burn(code), p=PROJECTS[code];
       const cross=[75,90,100].filter(x=>b.pct<x&&b.proj>=x).pop();
@@ -409,7 +409,7 @@ function viewApprovals(){
         <div class="pg-head" data-hl="budget"><label class="row" style="gap:8px"><input type="checkbox" data-act="apSelAll" data-proj="${code}" aria-label="Select all ${code}"><span><span class="name">${code} · ${esc(p.name)}</span><br><span class="sub">${esc(p.client)} · ${esc(p.show)}</span></span></label>
           ${p.est?`<div class="burn"><div class="burn-track"><div class="burn-used" style="width:${Math.min(100,b.pct)}%"></div><div class="burn-pend" style="left:${Math.min(100,b.pct)}%;width:${Math.max(0,Math.min(100,b.proj)-Math.min(100,b.pct))}%"></div>${[75,90,100].map(x=>`<span class="burn-tick" style="left:calc(${x}% - 1px)" title="${x}%"></span>`).join("")}</div>
           <div class="burn-lbl"><span>${fmtH(b.used)} of ${fmtH(b.est)} h used (${Math.round(b.pct)}%)</span><span>${b.pend?`+${fmtH(b.pend)} pending → ${Math.round(b.proj)}%`:""}</span></div></div>
-          ${b.pct>=100?`<span class="chip err">Over estimate</span>`:cross?`<span class="chip warn">Pending time crosses ${cross}%</span>`:b.pct>=75?`<span class="chip warn">${b.pct>=90?"Over 90%":"Over 75%"}</span>`:`<span class="chip ok">On track</span>`}${uj("PA-05")}`:`<span class="chip">Non-billable</span>`}
+          ${b.pct>=100?`<span class="chip err">Over estimate</span>`:cross?`<span class="chip warn">Pending time crosses ${cross}%</span>`:b.pct>=75?`<span class="chip warn">${b.pct>=90?"Over 90%":"Over 75%"}</span>`:`<span class="chip ok">On track</span>`}`:`<span class="chip">Non-billable</span>`}
         </div>
         <div class="scroll-x"><table class="plain" style="min-width:760px"><thead><tr><th style="width:34px"></th><th>Employee</th><th>${esc(t("task"))}</th><th>${esc(t("period"))}</th><th>Days</th><th class="r">${esc(t("hours"))}</th><th>Source</th><th>${esc(t("status"))}</th><th class="r">Actions</th></tr></thead><tbody>
         ${items.map(a=>`<tr><td>${a.status==="Pending"?`<input type="checkbox" data-act="apSel" data-id="${a.id}" ${UI.apSel.has(a.id)?"checked":""} aria-label="Select line">`:""}</td>
@@ -420,7 +420,7 @@ function viewApprovals(){
           <td>${a.status==="Pending"?`<span class="chip warn">${esc(t("pending"))}</span>`:a.status==="Approved"?`<span class="chip ok">${esc(t("approved"))}</span>`:`<span class="chip err" title="${esc(a.note)}">${esc(t("rejected"))}</span>`}${a.note?`<br><span class="sub">${esc(a.note)}</span>`:""}</td>
           <td class="r" style="white-space:nowrap">${a.status==="Pending"?`<button class="btn sm" data-act="apOne" data-id="${a.id}">${esc(t("approve"))}</button> <button class="btn sm" data-act="apEdit" data-id="${a.id}">${esc(t("edit"))}</button> <button class="btn sm danger" data-act="apReject" data-id="${a.id}">${esc(t("reject"))}</button>`:""}</td></tr>`).join("")}
         </tbody></table></div></div>`; }).join(""):`<div class="panel-body sub">No ${UI.apFilter.toLowerCase()} lines.</div>`}
-    <div class="legend"><span>Edit and Reject ask for a reason ${uj("PA-03,PA-04")}</span><span>Project-time decisions stay in CloudApper, separate from UKG sign-off ${uj("PA-06")}</span></div>
+    <div class="legend"><span>Edit and Reject ask for a reason</span><span>Project-time decisions stay in CloudApper, separate from UKG sign-off</span></div>
   </section>
   <section class="panel"><div class="panel-head"><h2>${esc(t("sync"))}</h2></div><div class="panel-body">${syncTable(S.txns.filter(x=>x.emp==="oliver"))}</div></section>`;
 }
@@ -498,9 +498,9 @@ function viewJourneys(){
   });
   return `<section class="panel j-summary"><h2>Specification coverage</h2><dl class="j-summary-list">
     <div><dt>Register entries</dt><dd>${JOURNEYS.length}</dd></div><div><dt>Documented</dt><dd>${cnt(j=>j.specStatus==="Documented")}</dd></div><div><dt>Open decisions</dt><dd>${cnt(j=>j.specStatus==="Open decision")}</dd></div><div><dt>Not documented</dt><dd>${cnt(j=>j.specStatus==="Not documented")}</dd></div><div><dt>Out of scope</dt><dd>${cnt(j=>j.specStatus==="Out of scope")}</dd></div>
-  </dl><p class="sub">Prototype coverage is tracked separately on each journey.</p></section>
+  </dl><p class="sub">Scope: hourly employee Punch, breaks, Odoo projects, transfers, and My Timecard (Global Time Entry specification §5.1). Kiosk, project-hours, Manager, and Time Off journeys are not on this screen.</p><p class="sub">Prototype coverage is tracked separately on each journey.</p></section>
   <section class="panel">
-    <div class="panel-head"><h2>Journey register</h2>
+    <div class="panel-head"><h2>Hourly employee journeys</h2>
       <select class="select" id="jEpic" data-act="jEpic" aria-label="Epic"><option value="">All epics</option>${Object.entries(EPICS).map(([k,v])=>`<option value="${k}" ${F.epic===k?"selected":""}>${k} · ${esc(v)}</option>`).join("")}</select>
       <select class="select" id="jSpec" data-act="jSpec" aria-label="Specification coverage"><option value="">All specification statuses</option>${specs.map(s=>`<option ${F.spec===s?"selected":""}>${esc(s)}</option>`).join("")}</select>
       <select class="select" id="jEv" data-act="jEv" aria-label="Evidence"><option value="">All evidence</option>${evs.map(e=>`<option ${F.ev===e?"selected":""}>${esc(e)}</option>`).join("")}</select>

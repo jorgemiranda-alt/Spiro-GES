@@ -44,7 +44,7 @@ const J_FOCUS={"TC-01":"timecard-grid","TC-02":"timecard-grid","TC-03":"timecard
 function approveTimecard(){
   const emp=S.persona, off=S.period, days=buildPeriod(emp,off), pk=periodKey(off);
   const missed=days.flatMap(d=>d.exc.filter(e=>e.code==="MISSED_OUT_PUNCH"||e.code==="UNEXCUSED_ABSENCE").map(e=>`${fmtDay(d.date)}: ${e.label}`));
-  if(missed.length){ openDialog("Fix these before approving",`<div class="banner err"><div>Missed punches block approval. Fix them, then approve again. ${uj("TC-08")}</div></div><ul>${missed.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`,`<button class="btn primary" data-act="toTimecard">Review timecard</button>`); return; }
+  if(missed.length){ openDialog("Fix these before approving",`<div class="banner err"><div>Missed punches block approval. Fix them, then approve again. ${uj("TC-04")}</div></div><ul>${missed.map(m=>`<li>${esc(m)}</li>`).join("")}</ul>`,`<button class="btn primary" data-act="toTimecard">Review timecard</button>`); return; }
   if(days.some(d=>d.segs.some(s=>s.live))){ toast("Punch out before approving the current period.","error"); return; }
   (S.tcAppr[emp]=S.tcAppr[emp]||{})[pk]="employee";
   const by={}; days.forEach((d,i)=>d.segs.forEach(s=>{ if(!s.hours) return; const k=s.proj; by[k]=by[k]||{task:s.task,days:Array(7).fill(0)}; by[k].days[i]+=s.hours; }));
