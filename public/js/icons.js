@@ -1,5 +1,6 @@
 /* ---------- Icons ---------- */
 const ICONS = {
+  download:'<path d="M12 3v12M7 10l5 5 5-5M5 16v5h14v-5"/>',
   home:'<path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5"/>',
   menu:'<path d="M4 6h16M4 12h16M4 18h16"/>', globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',

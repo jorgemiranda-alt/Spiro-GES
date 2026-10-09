@@ -22,6 +22,7 @@ function renderRail(){
           <option value="en" ${S.lang==="en"?"selected":""}>English</option><option value="fr" ${S.lang==="fr"?"selected":""}>Français</option><option value="de" ${S.lang==="de"?"selected":""}>Deutsch</option><option value="nl" ${S.lang==="nl"?"selected":""}>Nederlands</option><option value="pl" ${S.lang==="pl"?"selected":""}>Polski</option>
         </select></div>
         <button class="rail-settings" id="settingsBtn" data-act="settings" aria-label="Demo settings" title="Demo settings">${icon("gear",18)}<span>Demo settings</span></button>
+        <div class="pwa-controls" data-pwa-controls>${PWA.controls()}</div>
       </div>
       <nav class="rail-nav" aria-label="${esc(t("menu"))}">
         <div><div class="rail-label">${esc(t("timekeeping"))}</div>${items.map(nav).join("")}</div>

@@ -6,6 +6,24 @@ Interactive Spiro time and operations demo, published with GitHub Pages.
 
 The deployable site is in `public/`. GitHub Actions publishes it whenever a commit is pushed to `main`.
 
+## Install on mobile
+
+The demo is installable as a Progressive Web App and preserves the existing responsive layout. Launching it from the home screen opens it in its own app window, without the browser address bar.
+
+- **Android:** Open the published HTTPS site in Chrome, open the demo's **Menu**, and choose **Install demo**. When the native installation prompt is available, the button opens it. Otherwise, the control explains how to use the browser's **Install app / Add to Home Screen** option.
+- **iPhone / iPad:** Open the published site in Safari and choose **Share → Add to Home Screen → Add**. Keep **Open as Web App** enabled if offered. The demo's main menu also provides these instructions.
+- **Desktop:** Use the browser's install option or **Install demo** when supported.
+
+Installation controls follow the selected demo language and are hidden in the installed app. Spiro icons and theme colors identify the app, and standalone mobile screens respect device safe areas. The demo requires an internet connection; offline caching and background sync are outside this scope. Demo changes still use the existing browser-local sample-data storage. This remains a simulation of UKG and Odoo behavior.
+
+For local development, serve `public/` on `http://localhost` rather than opening the HTML file directly. A phone must use the published HTTPS URL; an ordinary HTTP LAN address does not meet installation requirements. Validate installation metadata and prompt handling with:
+
+```powershell
+node --test scripts/pwa.test.mjs
+```
+
+Asset URLs and the manifest's installation identity, launch URL and scope are relative, supporting both a root deployment and the `/Spiro-GES/` project path. The Pages workflow checks the installation metadata before deployment.
+
 ## Journey maintenance
 
 The [Google Sheet](https://docs.google.com/spreadsheets/d/1ZjEKU21p1VmP_A28lCFzTqQwOlINSt22Tutgm2t55J8/edit#gid=679994782) is the collaborative journey register. Edit journey content in **Journeys**, business requirements in **Requirements**, and client decisions in **OpenQuestions**. Preserve established IDs and the existing client review columns. Evidence, prototype coverage, client validation and approval are separate statuses.

@@ -25,6 +25,8 @@ jobs:
         uses: actions/checkout@v6
       - name: Check journey data consistency
         run: node scripts/sync-journeys.mjs --check --demo-only
+      - name: Check PWA installation
+        run: node --test scripts/pwa.test.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload site artifact

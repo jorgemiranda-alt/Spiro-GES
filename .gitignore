@@ -18,3 +18,4 @@
 !scripts/sync-journeys.mjs
 !scripts/sync-journeys.test.mjs
 !scripts/punch-alignment.test.mjs
+!scripts/pwa.test.mjs

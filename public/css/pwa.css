@@ -1,0 +1,18 @@
+/* App installation belongs with the existing demo tools. */
+.pwa-controls{display:grid;gap:10px;grid-column:1/-1;min-width:0}
+.pwa-controls:empty{display:none}
+.pwa-controls .rail-settings{min-height:44px}
+.pwa-controls .rail-settings span{min-width:0;overflow-wrap:anywhere}
+.pwa-controls .rail-settings svg{flex:none}
+.pwa-controls .rail-settings:focus-visible{outline-color:var(--accent)}
+.pwa-controls .rail-settings:disabled{color:var(--nav-muted);cursor:wait}
+.pwa-install-help summary{list-style:none;cursor:pointer}
+.pwa-install-help summary::-webkit-details-marker{display:none}
+.pwa-install-help p{margin:4px 9px 0;color:var(--nav-ink);font-size:var(--type-support);line-height:var(--leading-support)}
+/* Preserve the mobile layout while respecting notches in the installed window. */
+@media (display-mode:standalone) and (max-width:720px){
+  .rail{top:0}
+  .rail-head{height:calc(60px + env(safe-area-inset-top,0px));padding-top:calc(6px + env(safe-area-inset-top,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  .rail-body{max-height:calc(100svh - 60px - env(safe-area-inset-top,0px))}
+  .content{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:max(32px,env(safe-area-inset-bottom,0px))}
+}
