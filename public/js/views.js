@@ -201,8 +201,6 @@ function viewPunch(){
   const taskSel=`<select id="selTask" class="select" data-act="selTask" ${selProj?"":"disabled"}><option value="">${esc(t("noTask"))}</option>${tasks.map(x=>`<option value="${esc(x)}" ${x===selTask?"selected":""}>${esc(x)}</option>`).join("")}</select>`;
   const projectPicker=punchOdooProjectPicker(A,selProj);
   const last=recent[0];
-  const pendingCategory=pending&&LABOR.opts.proj.find(x=>x.v===pending.project);
-  const pendingLabel=pending?[pendingCategory?pendingCategory.l:pending.project,laborTaskName(pending.task),pending.tc,pending.func].filter(Boolean).join(" · "):"";
   const punchAction=L.st==="out"?"punchIn":"punchOut";
   const transferDisabled=L.st==="brk";
   const noRecentTransfers=recentTransfers.length===0;
@@ -228,7 +226,7 @@ function viewPunch(){
           <button class="icon-btn punch-info" type="button" title="${esc(recentTransferHint)}" aria-label="${esc(t("recentTransfers"))} information">${icon("info",19)}</button>
         </div>
         <button class="punch-add-transfer" data-act="startXfer" data-hl="punch-transfer" ${transferDisabled?`disabled title="${esc(t("transferAfterBreak"))}"`:""}>${icon("plus",20)}<span>${esc(t("addTransfer"))}</span></button>
-        ${pending?`<p class="punch-pending-note"><b>${esc(t("laborCategory"))}:</b> ${esc(pendingLabel||"—")}</p>`:""}
+        
         ${L.st==="out"?`<div class="punch-odoo-section"><div class="two punch-optional-fields">${projectPicker}<label class="field"><span>${esc(t("odooTask"))} <small>${esc(t("optional"))}</small></span>${taskSel}</label></div>
           <div class="sub">Only active Odoo projects available to you are listed. ${uj("PU-05")}</div></div>`:""}
         <div class="punch-action-bar ${L.st!=="out"?"has-break":""}">

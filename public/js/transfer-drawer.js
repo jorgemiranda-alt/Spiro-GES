@@ -140,7 +140,7 @@ function useRecentPunchTransfer(id){
   if(!cat||cat.taskReq&&!transfer.task||transfer.task&&!cat.tasks.includes(transfer.task)){ showPunchNotice("error","This saved transfer has incomplete labor categories. Add a transfer and choose the current categories."); return; }
   if(L.st==="out"){
     S.pendingPunchTransfers=S.pendingPunchTransfers||{}; S.pendingPunchTransfers[emp]=transfer;
-    persist(); clearPunchNotice(); render(); return;
+    persist(); showPunchNotice("success","Your next Punch In will use this transfer."); return;
   }
   const current=L.labor||d;
   if((current.project||"")===(transfer.project||"")&&(current.task||"")===(transfer.task||"")&&(current.tc||"")===(transfer.tc||"")&&(current.func||"")===(transfer.func||"")){
