@@ -144,6 +144,9 @@ document.addEventListener("click",e=>{
     case "kDone": kioskReset(); render(); toast("Kiosk ready for the next person."); break;
     // journeys
     case "jToggle": { if(e.target.closest("button")) break; const id=el.dataset.id; UI.jOpen.has(id)?UI.jOpen.delete(id):UI.jOpen.add(id); render(); break; }
+        case "shotOpen": { const src=el.dataset.src, alt=el.dataset.alt, cap=el.dataset.caption; $("#layer").innerHTML=`<div class="shot-lightbox" role="dialog" aria-modal="true" aria-label="${esc(cap)} screenshot" data-act="shotClose" style="position:fixed;inset:0;z-index:60;background:rgba(10,12,14,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:56px 16px 16px;box-sizing:border-box;cursor:zoom-out"><button type="button" class="btn" data-act="shotClose" style="position:absolute;top:16px;right:16px" aria-label="Close screenshot">Close</button><img src="${esc(src)}" alt="${esc(alt)}" data-act="shotKeep" style="display:block;max-width:100%;max-height:calc(100vh - 110px);width:auto;height:auto;border-radius:8px;background:#fff;cursor:default"><p style="margin:0;color:#fff;font-size:14px">${esc(cap)} · prototype</p></div>`; $("#layer .shot-lightbox .btn")?.focus(); break; }
+    case "shotKeep": break;
+    case "shotClose": $("#layer").innerHTML=""; break;
     case "jRun": { e.stopPropagation(); const j=JOURNEYS.find(x=>x.id===el.dataset.id); const [p,v,hl]=j.demo; S.persona=p; S.period=J_PERIOD[j.id]??0; if(j.id==="PA-06"){} if(v==="kiosk") kioskReset(); go(v); flash(J_FOCUS[j.id]||hl); toast(`${j.id} · ${j.name}`); break; }
     case "reset": try{localStorage.removeItem(STORE_KEY);}catch(_){} S=seed(); S.seedWeek=periodKey(0); UI.drawer=false; $("#layer").innerHTML=""; kioskReset(); render(); toast("Demo data reset.","success"); break;
   }
