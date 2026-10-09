@@ -211,7 +211,7 @@ function viewPunch(){
   const sameAsHome=["project","task","tc","func"].every(k=>(currentTransfer[k]||"")===(homeTransfer[k]||""));
   const curCat=LABOR.opts.proj.find(x=>x.v===currentTransfer.project);
   const curDesc=[curCat?curCat.l:currentTransfer.project,laborTaskName(currentTransfer.task),currentTransfer.tc,currentTransfer.func].filter(Boolean).join(" · ");
-  const currentLabel=`${sameAsHome?"Home":"Current"}: ${curDesc||"—"}`;
+  const currentLabel=sameAsHome?(curDesc||"—"):`Current: ${curDesc||"—"}`;
   const recentTransferHint=transferDisabled?t("transferAfterBreak"):noRecentTransfers?t("noRecentTransfers"):"Choose a recent transfer to use now or with your next punch.";
   return `
   ${S.settings.simDuplicatePunchError?`<div class="banner err">${icon("x")}<div><b>UKG duplicate-punch error simulation is armed.</b> The next Punch In or Punch Out will display the error returned by UKG. ${uj("PU-08")}</div></div>`:""}
