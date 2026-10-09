@@ -206,6 +206,12 @@ function viewPunch(){
   const punchAction=L.st==="out"?"punchIn":"punchOut";
   const transferDisabled=L.st==="brk";
   const noRecentTransfers=recentTransfers.length===0;
+  const homeTransfer=laborDefaults(emp)||{};
+  const currentTransfer=L.st==="out"?(pending||homeTransfer):(L.labor||homeTransfer);
+  const sameAsHome=["project","task","tc","func"].every(k=>(currentTransfer[k]||"")===(homeTransfer[k]||""));
+  const curCat=LABOR.opts.proj.find(x=>x.v===currentTransfer.project);
+  const curDesc=[curCat?curCat.l:currentTransfer.project,laborTaskName(currentTransfer.task),currentTransfer.tc,currentTransfer.func].filter(Boolean).join(" · ");
+  const currentLabel=`${sameAsHome?"Home":"Current"}: ${curDesc||"—"}`;
   const recentTransferHint=transferDisabled?t("transferAfterBreak"):noRecentTransfers?t("noRecentTransfers"):"Choose a recent transfer to use now or with your next punch.";
   return `
   ${S.settings.simDuplicatePunchError?`<div class="banner err">${icon("x")}<div><b>UKG duplicate-punch error simulation is armed.</b> The next Punch In or Punch Out will display the error returned by UKG. ${uj("PU-08")}</div></div>`:""}
@@ -216,7 +222,7 @@ function viewPunch(){
         <div class="punch-last"><span>${esc(t("lastPunch"))}: <strong>${last?`${esc(fmtDay(tsDate(last.t)))} ${esc(fmtClock(tsTime(last.t)))}`:"—"}</strong></span><button class="icon-btn punch-info" type="button" title="The date and time of your most recent punch." aria-label="${esc(t("lastPunch"))} information">${icon("info",19)}</button></div>
         <div class="punch-transfer-row">
           <select id="recentTransfer" class="select punch-recent-transfer" data-act="recentTransfer" ${transferDisabled||noRecentTransfers?"disabled":""} ${transferDisabled?`title="${esc(t("transferAfterBreak"))}"`:noRecentTransfers?`title="${esc(t("noRecentTransfers"))}"`:""} aria-label="${esc(t("recentTransfers"))}">
-            <option value="">${esc(noRecentTransfers?t("noRecentTransfers"):t("recentTransfers"))}</option>
+            <option value="">${esc(currentLabel)}</option>
             ${recentTransfers.map(p=>{const cat=LABOR.opts.proj.find(x=>x.v===p.labor.project), desc=[cat?cat.l:p.labor.project,laborTaskName(p.labor.task),p.labor.tc,p.labor.func].filter(Boolean).join(" · ")||t("transfer");return `<option value="${esc(p.id)}">${esc(desc)} · ${esc(fmtDay(tsDate(p.t)))}</option>`;}).join("")}
           </select>
           <button class="icon-btn punch-info" type="button" title="${esc(recentTransferHint)}" aria-label="${esc(t("recentTransfers"))} information">${icon("info",19)}</button>
