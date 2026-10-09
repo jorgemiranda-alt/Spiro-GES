@@ -26,7 +26,7 @@ const PERSONAS = {
  lukas:{name:"Lukas Weber",short:"Lukas",initials:"LW",label:"Lukas Weber · DE · Warehouse (kiosk)",role:"Warehouse Production Specialist",country:"DE",type:"hourly",lang:"de",projects:["BER-1102","MUC-2077","DE-OPS","MUC-1999"],badge:"40-2231",sched:{start:"07:00",end:"15:30",brk:30,days:[1,2,3,4,5]},views:["home","kiosk","timecard"],land:"kiosk",ot:false},
  zofia:{name:"Zofia Kowalska",short:"Zofia",initials:"ZK",label:"Zofia Kowalska · PL · Hourly (grid)",role:"Production Coordinator",country:"PL",type:"hourly",lang:"pl",projects:["PL-8804","PL-8810","PL-OPS","PL-8650","PL-8920","PL-8933"],sched:{start:"08:00",end:"16:00",brk:30,days:[1,2,3,4,5]},views:["home","grid"],land:"grid",ot:false},
  maya:{name:"Maya Chen",short:"Maya",initials:"MC",label:"Maya Chen · UK · Salaried",role:"Senior Creative Director",country:"UK",type:"salary",lang:"en",projects:["PRJ-5310","PRJ-5266","PRJ-5204","PRJ-5400","PRJ-5412"],sched:null,views:["home","grid"],land:"grid",ot:false},
- oliver:{name:"Oliver Grant",short:"Oliver",initials:"OG",label:"Oliver Grant · Manager",role:"Manager",country:"UK",type:"approver",lang:"en",projects:[],sched:null,views:["home","approvals"],land:"approvals",ot:false}
+ oliver:{name:"Oliver Grant",short:"Oliver",initials:"OG",label:"Oliver Grant · Manager",role:"Manager",country:"UK",type:"approver",lang:"en",projects:[],sched:null,views:["home"],land:"home",ot:false}
 };
 const REASONS = ["Forgot to punch","Wrong time recorded","Wrong project","Device or network issue","Approved by manager"];
 const VIEW_ICON = {home:"home",punch:"clock",timecard:"table",grid:"grid",kiosk:"scan",approvals:"check",journeys:"route"};

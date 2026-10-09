@@ -1,6 +1,6 @@
 /* Hash-based routes keep the prototype deployable as a static page. */
-const APP_ROUTE_VIEWS = new Set(["home", "punch", "timecard", "grid", "kiosk", "approvals", "journeys", "timeoff"]);
-const APP_ROUTE_DEFAULT_PERSONA = { punch: "ava", timecard: "ava", grid: "zofia", kiosk: "lukas", approvals: "oliver" };
+const APP_ROUTE_VIEWS = new Set(["home", "punch", "timecard", "grid", "kiosk", "journeys", "timeoff"]);
+const APP_ROUTE_DEFAULT_PERSONA = { punch: "ava", timecard: "ava", grid: "zofia", kiosk: "lukas" };
 let lastAppRouteEventHash = location.hash;
 
 function appRouteFromHash(hash = location.hash) {

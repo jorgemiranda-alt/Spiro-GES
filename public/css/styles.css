@@ -670,6 +670,7 @@ table.tc.ukg-tc .tc-transfer-cell:focus-visible{position:relative;z-index:2;outl
 .tc-transfer-category-details dt{color:var(--muted);font-size:var(--type-meta);line-height:var(--leading-meta)}
 .tc-transfer-category-details dd{margin:0;font-size:var(--type-label);line-height:var(--leading-label);overflow-wrap:anywhere}
 .tc-transfer-category>.sub{margin:0;font-size:var(--type-label);line-height:var(--leading-label)}
+.tc-transfer-category-values{margin:0;font-size:var(--type-label);line-height:var(--leading-label);overflow-wrap:anywhere}
 
 /* Shared timeclock kiosk */
 .shell.kiosk-mode{display:block;min-height:100vh;min-height:100svh;background:#fffdf5}

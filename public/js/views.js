@@ -1,12 +1,12 @@
 /* ---------- Rendering ---------- */
 const $ = s => document.querySelector(s);
 function persona(){ return PERSONAS[S.persona]; }
-function pendingForOliver(){ return S.approvals.filter(a=>a.status==="Pending"&&PROJECTS[a.proj]&&PROJECTS[a.proj].approver==="oliver").length; }
+
 
 function renderRail(){
   const P=persona(), items=P.views;
   const titles={home:t("home"),punch:t("punch"),timecard:t("timecard"),grid:t("grid"),kiosk:t("kiosk"),approvals:t("approvals"),journeys:t("journeys"),timeoff:t("timeoff")};
-  const nav=v=>`<button class="nav ${S.view===v?"active":""}" data-act="nav" data-view="${v}" title="${esc(t(v))}">${icon(VIEW_ICON[v])}<span class="lbl">${esc(t(v))}</span>${v==="approvals"&&pendingForOliver()?`<span class="count">${pendingForOliver()}</span>`:""}</button>`;
+  const nav=v=>`<button class="nav ${S.view===v?"active":""}" data-act="nav" data-view="${v}" title="${esc(t(v))}">${icon(VIEW_ICON[v])}<span class="lbl">${esc(t(v))}</span></button>`;
   const personaOptions=Object.entries(PERSONAS).map(([k,p])=>`<option value="${k}" ${k===S.persona?"selected":""}>${esc(p.label)}</option>`).join("");
   $("#rail").innerHTML=`
     <div class="rail-head">
@@ -39,7 +39,7 @@ function renderRail(){
 function render(){
   if(!persona().views.includes(S.view)&&S.view!=="journeys") S.view=persona().land;
   renderRail();
-  const V={home:viewHome,punch:viewPunch,timecard:viewTimecard,grid:viewGrid,kiosk:viewKiosk,approvals:viewApprovals,journeys:viewJourneys,timeoff:viewTimeOff}[S.view];
+  const V={home:viewHome,punch:viewPunch,timecard:viewTimecard,grid:viewGrid,kiosk:viewKiosk,journeys:viewJourneys,timeoff:viewTimeOff}[S.view];
   $("#content").innerHTML=V();
   $("#content").classList.toggle("home-content",S.view==="home");
   if(S.view==="grid") updateGrid();
@@ -85,7 +85,6 @@ function homeProjectRow(row){
 
 function homeQuickActions(P){
   if(S.persona==="oliver") return [
-    {view:"approvals",icon:"check",label:t("approvals"),detail:`${pendingForOliver()} ${ht("itemsWaiting")}`,primary:true},
     {view:"timeoff",icon:"cal",label:`${t("timeoff")} · ${toText("team")}`,detail:`${S.timeOff.requests.filter(r=>r.manager===S.persona&&r.emp!==S.persona&&r.status==="Submitted").length} ${ht("requestsWaiting")}`,team:true}
   ];
   const entry=P.views.includes("punch")?{view:"punch",icon:"clock",label:t("punch"),primary:true}
@@ -159,7 +158,6 @@ function viewHome(){
           <ul class="home-action-list">${actions.map(action=>`<li><button type="button" class="home-action ${action.primary?"primary":""}" data-act="${action.team||action.request?"homeTimeOff":"nav"}" ${action.team?`data-team="true"`:action.request?`data-request="true"`:`data-view="${action.view}"`}><span class="home-action-icon">${icon(action.icon,18)}</span><span class="home-action-copy"><b>${esc(action.label)}</b>${action.detail?`<small>${esc(action.detail)}</small>`:""}</span>${icon("right",16)}</button></li>`).join("")}</ul>
         </section>
         ${homeTimeOffPanel()}
-        ${S.persona==="oliver"?`<section class="home-approval-note"><span>${icon("info",16)}</span><p>${esc(ht("approvalScopeNote"))}</p><button type="button" data-act="nav" data-view="approvals">${esc(t("approvals"))}</button></section>`:""}
       </aside>
     </div>
   </div>`;
@@ -241,7 +239,7 @@ function viewPunch(){
   const projectPicker=punchOdooProjectPicker(A,selProj);
   const last=recent[0];
   const punchAction=L.st==="out"?"punchIn":"punchOut";
-  const transferDisabled=L.st==="brk";
+  const busy=!!UI.punchBusy?.has(emp), transferDisabled=L.st==="brk"||busy;
   return `
   ${S.settings.simDuplicatePunchError?`<div class="banner err">${icon("x")}<div><b>UKG duplicate-punch error simulation is armed.</b> The next Punch In or Punch Out will display the error returned by UKG. ${uj("PU-08")}</div></div>`:""}
   <div class="punch-screen">
@@ -255,8 +253,8 @@ function viewPunch(){
         ${L.st==="out"?`<div class="punch-odoo-section"><div class="two punch-optional-fields">${projectPicker}<label class="field"><span>${esc(t("odooTask"))} <small>${esc(t("optional"))}</small></span>${taskSel}</label></div>
           <div class="sub">Only active Odoo projects available to you are listed. ${uj("PU-05")}</div></div>`:""}
         <div class="punch-action-bar ${L.st!=="out"?"has-break":""}">
-          <button class="btn punch-submit ${L.st==="brk"?"is-secondary":""}" data-act="${punchAction}" data-hl="${punchAction==="punchIn"?"punch-in":"punch-out"}" aria-label="${esc(t(punchAction))}">${esc(t(punchAction))}</button>
-          ${L.st!=="out"?`<button class="btn punch-break ${L.st==="brk"?"is-primary":""}" data-act="${L.st==="brk"?"endBrk":"startBrk"}" data-hl="punch-break" aria-label="${esc(L.st==="brk"?t("endBreak"):t("startBreak"))}"><span>${esc(L.st==="brk"?t("endBreak"):t("startBreak"))}</span>${uj("PU-03")}</button>`:""}
+          <button class="btn punch-submit ${L.st==="brk"?"is-secondary":""}" data-act="${punchAction}" data-hl="${punchAction==="punchIn"?"punch-in":"punch-out"}" aria-label="${esc(t(punchAction))}" ${busy?'disabled aria-busy="true"':''}>${esc(t(punchAction))}</button>
+          ${L.st!=="out"?`<button class="btn punch-break ${L.st==="brk"?"is-primary":""}" data-act="${L.st==="brk"?"endBrk":"startBrk"}" data-hl="punch-break" aria-label="${esc(L.st==="brk"?t("endBreak"):t("startBreak"))}" ${busy?'disabled aria-busy="true"':''}><span>${esc(L.st==="brk"?t("endBreak"):t("startBreak"))}</span>${uj("PU-03")}</button>`:""}
         </div>
       </div>
     </section>
@@ -417,43 +415,6 @@ function burn(code){
   const pend=S.approvals.filter(a=>a.proj===code&&a.status==="Pending").reduce((x,a)=>x+a.hours,0);
   const used=p.used+appr; return {est:p.est,used,pend,pct:p.est?used/p.est*100:0,proj:p.est?(used+pend)/p.est*100:0};
 }
-function viewApprovals(){
-  const mine=S.approvals.filter(a=>PROJECTS[a.proj].approver==="oliver");
-  const list=mine.filter(a=>UI.apFilter==="All"||a.status===UI.apFilter);
-  const groups={}; list.forEach(a=>(groups[a.proj]=groups[a.proj]||[]).push(a));
-  const counts=s=>mine.filter(a=>s==="All"||a.status===s).length;
-  const sel=[...UI.apSel].filter(id=>list.some(a=>a.id===id&&a.status==="Pending"));
-  return `
-  <div class="banner info">${icon("check")}<div>Showing hourly project time for projects where <b>you are the Line Manager / Project Owner</b>. This is separate from the HR reporting line and from UKG timecard sign-off.</div></div>
-  <section class="panel" data-hl="approvals">
-    <div class="tc-toolbar">
-      <div class="tabs" style="border:0;padding:0">${["Pending","Approved","Rejected","All"].map(s=>`<button class="tab ${UI.apFilter===s?"active":""}" data-act="apFilter" data-f="${s}">${esc({Pending:t("pending"),Approved:t("approved"),Rejected:t("rejected"),All:"All"}[s])} (${counts(s)})</button>`).join("")}</div>
-      <span style="margin-left:auto"></span>
-      <span class="sub">${sel.length} selected</span>
-      <button class="btn sm primary" data-act="apApprove" ${sel.length?"":"disabled"}>${icon("check",16)}${esc(t("approve"))}</button>
-    </div>
-    ${Object.keys(groups).length?Object.entries(groups).map(([code,items])=>{ const b=burn(code), p=PROJECTS[code];
-      const cross=[75,90,100].filter(x=>b.pct<x&&b.proj>=x).pop();
-      return `<div class="pgroup">
-        <div class="pg-head" data-hl="budget"><label class="row" style="gap:8px"><input type="checkbox" data-act="apSelAll" data-proj="${code}" aria-label="Select all ${code}"><span><span class="name">${code} · ${esc(p.name)}</span><br><span class="sub">${esc(p.client)} · ${esc(p.show)}</span></span></label>
-          ${p.est?`<div class="burn"><div class="burn-track"><div class="burn-used" style="width:${Math.min(100,b.pct)}%"></div><div class="burn-pend" style="left:${Math.min(100,b.pct)}%;width:${Math.max(0,Math.min(100,b.proj)-Math.min(100,b.pct))}%"></div>${[75,90,100].map(x=>`<span class="burn-tick" style="left:calc(${x}% - 1px)" title="${x}%"></span>`).join("")}</div>
-          <div class="burn-lbl"><span>${fmtH(b.used)} of ${fmtH(b.est)} h used (${Math.round(b.pct)}%)</span><span>${b.pend?`+${fmtH(b.pend)} pending → ${Math.round(b.proj)}%`:""}</span></div></div>
-          ${b.pct>=100?`<span class="chip err">Over estimate</span>`:cross?`<span class="chip warn">Pending time crosses ${cross}%</span>`:b.pct>=75?`<span class="chip warn">${b.pct>=90?"Over 90%":"Over 75%"}</span>`:`<span class="chip ok">On track</span>`}`:`<span class="chip">Non-billable</span>`}
-        </div>
-        <div class="scroll-x"><table class="plain" style="min-width:760px"><thead><tr><th style="width:34px"></th><th>Employee</th><th>${esc(t("task"))}</th><th>${esc(t("period"))}</th><th>Days</th><th class="r">${esc(t("hours"))}</th><th>Source</th><th>${esc(t("status"))}</th><th class="r">Actions</th></tr></thead><tbody>
-        ${items.map(a=>`<tr><td>${a.status==="Pending"?`<input type="checkbox" data-act="apSel" data-id="${a.id}" ${UI.apSel.has(a.id)?"checked":""} aria-label="Select line">`:""}</td>
-          <td style="white-space:nowrap"><b>${esc(a.empName)}</b></td><td>${esc(a.task||"—")}</td><td class="num" style="white-space:nowrap">${esc(fmtRange(a.period===periodKey(0)?0:-1))}</td>
-          <td class="num sub" style="min-width:150px">${a.days.map((h,i)=>h?`${addDays(parseYmd(a.period),i).toLocaleDateString(loc(),{weekday:"short"})} ${fmtH(h)}`:"").filter(Boolean).join(" · ")}</td>
-          <td class="r num"><b>${fmtH(a.hours)}</b>${a.edited?`<br><span class="sub" style="color:var(--edit)">was ${fmtH(a.edited.from)}</span>`:""}</td>
-          <td><span class="chip">${esc(a.src)}</span></td>
-          <td>${a.status==="Pending"?`<span class="chip warn">${esc(t("pending"))}</span>`:a.status==="Approved"?`<span class="chip ok">${esc(t("approved"))}</span>`:`<span class="chip err" title="${esc(a.note)}">${esc(t("rejected"))}</span>`}${a.note?`<br><span class="sub">${esc(a.note)}</span>`:""}</td>
-          <td class="r" style="white-space:nowrap">${a.status==="Pending"?`<button class="btn sm" data-act="apOne" data-id="${a.id}">${esc(t("approve"))}</button> <button class="btn sm" data-act="apEdit" data-id="${a.id}">${esc(t("edit"))}</button> <button class="btn sm danger" data-act="apReject" data-id="${a.id}">${esc(t("reject"))}</button>`:""}</td></tr>`).join("")}
-        </tbody></table></div></div>`; }).join(""):`<div class="panel-body sub">No ${UI.apFilter.toLowerCase()} lines.</div>`}
-    <div class="legend"><span>Edit and Reject ask for a reason</span><span>Project-time decisions stay in CloudApper, separate from UKG sign-off</span></div>
-  </section>
-  <section class="panel"><div class="panel-head"><h2>${esc(t("sync"))}</h2></div><div class="panel-body">${syncTable(S.txns.filter(x=>x.emp==="oliver"))}</div></section>`;
-}
-
 /* Kiosk */
 function viewKiosk(){
   const K=UI.kiosk, emp="lukas", P=PERSONAS[emp];
@@ -517,7 +478,7 @@ function shotViewerHtml(jid, group, index){
 /* Journeys */
 function viewJourneys(){
   const F=UI.jFilter, q=F.q.toLowerCase(), C=UI.jCollapsed||(UI.jCollapsed=new Set());
-  const list=JOURNEYS.filter(j=>(!F.epic||j.epic===F.epic)&&(!F.ev||j.ev===F.ev)&&(!F.spec||j.specStatus===F.spec)&&(!q||[j.id,j.name,j.actor,j.story,j.specStatus,j.specRef,j.ev].join(" ").toLowerCase().includes(q)));
+  const list=JOURNEYS.filter(j=>(!F.epic||j.epic===F.epic)&&(!F.ev||j.ev===F.ev)&&(!F.spec||j.specStatus===F.spec)&&(!q||[j.id,j.name,j.actor,j.story,j.specStatus,j.specRef,j.ev,j.scope,...j.requirementIds].join(" ").toLowerCase().includes(q)));
   const evs=[...new Set(JOURNEYS.map(j=>j.ev))];
   const specs=["Confirmed","Prototype","Proposed","Open decision","Out of scope"].filter(s=>JOURNEYS.some(j=>j.specStatus===s));
   const cnt=f=>JOURNEYS.filter(f).length;
@@ -525,14 +486,14 @@ function viewJourneys(){
   const specCls=s=>s==="Confirmed"?"ok":(s==="Prototype"||s==="Proposed")?"info":s==="Open decision"?"warn":"";
   let body="", lastEpic="";
   list.forEach(j=>{
-    if(j.epic!==lastEpic){ const cEp=C.has(j.epic), nEp=list.filter(x=>x.epic===j.epic).length; body+=`<tr class="epic-h jgroup" data-act="epicToggle" data-epic="${j.epic}" aria-expanded="${cEp?"false":"true"}" tabindex="0" style="cursor:pointer"><td colspan="8"><span style="display:inline-flex;align-items:center;gap:8px">${icon(cEp?"right":"down",16)}<span>${j.epic} · ${esc(EPICS[j.epic])}</span><span class="sub">${nEp} journeys</span></span></td></tr>`; lastEpic=j.epic; }
+    if(j.epic!==lastEpic){ const cEp=C.has(j.epic), nEp=list.filter(x=>x.epic===j.epic).length; body+=`<tr class="epic-h jgroup" data-act="epicToggle" data-epic="${j.epic}" aria-expanded="${cEp?"false":"true"}" tabindex="0" style="cursor:pointer"><td colspan="7"><span style="display:inline-flex;align-items:center;gap:8px">${icon(cEp?"right":"down",16)}<span>${j.epic} · ${esc(EPICS[j.epic])}</span><span class="sub">${nEp} journeys</span></span></td></tr>`; lastEpic=j.epic; }
     if(C.has(j.epic)) return;
     const open=UI.jOpen.has(j.id);
-    body+=`<tr class="jrow" data-act="jToggle" data-id="${j.id}" id="j-${j.id}"><td class="mono"><b>${j.id}</b></td><td><b style="font-weight:600">${esc(j.name)}</b><br><span class="sub">${esc(j.actor)}</span></td><td><span class="chip ${specCls(j.specStatus)}">${esc(j.specStatus)}</span><br><span class="sub">${esc(j.specRef)}</span></td><td><span class="chip ${evCls(j.ev)}">${esc(j.ev.replace("Confirmed - ","").replace("Proposed - ",""))}</span></td><td>${esc(j.pri)}</td><td><span class="chip ${j.cov==="Covered"?"ok":j.cov==="Partial"?"warn":""}">${esc(j.cov)}</span></td><td class="r">${j.cov==="Not prototyped"?`<span class="sub">Not prototyped</span>`:`<button class="btn sm" data-act="jRun" data-id="${j.id}">Open in demo</button>`}</td></tr>`;
-    if(open) body+=`<tr class="jdet"><td colspan="8"><div class="jdet-grid">
+    body+=`<tr class="jrow" data-act="jToggle" data-id="${j.id}" id="j-${j.id}"><td class="mono"><b>${j.id}</b></td><td><b style="font-weight:600">${esc(j.name)}</b><br><span class="sub">${esc(j.actor)} · ${esc(j.scope)}</span></td><td><span class="chip ${specCls(j.specStatus)}">${esc(j.specStatus)}</span><br><span class="sub">${esc(j.specRef)}</span></td><td><span class="chip ${evCls(j.ev)}">${esc(j.ev.replace("Confirmed - ","").replace("Proposed - ",""))}</span></td><td>${esc(j.pri)}</td><td><span class="chip ${j.cov==="Covered"?"ok":j.cov==="Partial"?"warn":""}">${esc(j.cov)}</span></td><td class="r">${j.cov==="Not prototyped"||!j.demo[0]||["Future","Out of scope"].includes(j.scope)?`<span class="sub">${esc(j.scope==="Future"||j.scope==="Out of scope"?j.scope:"Not prototyped")}</span>`:`<button class="btn sm" data-act="jRun" data-id="${j.id}">${j.scope==="Draft"?"Open draft illustration":"Open in demo"}</button>`}</td></tr>`;
+    if(open) body+=`<tr class="jdet"><td colspan="7"><div class="jdet-grid">
       ${j.specStatus==="Out of scope"?`<div class="j-scope-note">This activity is explicitly outside the current specification scope.</div>`:""}
       <div><h4>Specification coverage</h4><p>${esc(j.specStatus)} · ${esc(j.specRef)}</p></div>
-      <div><h4>User story</h4><p>${esc(j.story)}</p></div><div><h4>Trigger · Preconditions</h4><p>${esc(j.trigger)}. ${esc(j.pre)}</p></div>${j.currentState?`<div><h4>Current state</h4><p>${esc(j.currentState)}</p></div>`:""}
+      <div><h4>Scope and client review</h4><p>${esc(j.scope)} · ${esc(j.reviewStatus||"Not reviewed")} · Decision: ${esc(j.clientDecision||"Pending")}</p></div><div><h4>Requirement IDs</h4><p>${esc(j.requirementIds.join(", ")||"—")}</p></div><div><h4>User story</h4><p>${esc(j.story)}</p></div><div><h4>Trigger · Preconditions</h4><p>${esc(j.trigger)}. ${esc(j.pre)}</p></div>${j.currentState?`<div><h4>Current state</h4><p>${esc(j.currentState)}</p></div>`:""}
       <div><h4>Main flow</h4><p>${esc(j.flow.replace(/ (\d)\. /g,"\n$1. "))}</p></div>${j.gridFields?`<div style="grid-column:1/-1"><h4>Grid fields</h4><table class="plain" style="min-width:0"><thead><tr><th>Column</th><th>Display behavior</th></tr></thead><tbody>${j.gridFields.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody></table></div>`:""}<div><h4>Alternate / exception</h4><p>${esc(j.alt||"—")}</p></div>
       <div><h4>Business rules</h4><p>${esc(j.rules||"—")}</p></div><div><h4>Integration note</h4><p class="mono">${esc(j.api)}</p></div>
       <div style="grid-column:1/-1"><h4>Acceptance criteria</h4><ul class="j-ac-list">${j.ac.map(a=>`<li>${esc(a.join("; "))}</li>`).join("")}</ul></div>
@@ -540,7 +501,7 @@ function viewJourneys(){
   });
   return `<section class="panel j-summary"><h2>Specification coverage</h2><dl class="j-summary-list">
     <div><dt>Register entries</dt><dd>${JOURNEYS.length}</dd></div><div><dt>Confirmed</dt><dd>${cnt(j=>j.specStatus==="Confirmed")}</dd></div><div><dt>Prototype</dt><dd>${cnt(j=>j.specStatus==="Prototype")}</dd></div><div><dt>Proposed</dt><dd>${cnt(j=>j.specStatus==="Proposed")}</dd></div><div><dt>Open decisions</dt><dd>${cnt(j=>j.specStatus==="Open decision")}</dd></div><div><dt>Out of scope</dt><dd>${cnt(j=>j.specStatus==="Out of scope")}</dd></div>
-  </dl><p class="sub">Scope: hourly employee journeys (spec §5.1), Project hours (§5.2), Time Off (§5.3), and Timeclock (§5.5). Manager review (§5.4) is not on this screen until it is drafted.</p><p class="sub">Prototype coverage is tracked separately on each journey.</p></section>
+  </dl><p class="sub">Scope: Punch and My Timecard (§5.1), salaried Project Hours (§5.2), Time Off (§5.3), Timeclock (§5.5), and shared access. Future and excluded journeys remain visible for reference.</p><p class="sub">Prototype coverage, validation and client approval are tracked separately. Historical screenshots may differ from the current demo.</p><p class="sub">Content revision ${esc(JOURNEY_SYNC.contentRevision)} · Snapshot <span class="mono">${esc(JOURNEY_SYNC.revision)}</span> · Imported ${esc(new Date(JOURNEY_SYNC.importedAt).toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"}))}. <a href="${esc(JOURNEY_SYNC.sheetUrl)}" target="_blank" rel="noopener">Review and collaborate in Google Sheets</a>.</p></section>
   <section class="panel">
     <div class="panel-head"><h2>User journeys</h2>
       <select class="select" id="jEpic" data-act="jEpic" aria-label="Epic"><option value="">All epics</option>${Object.entries(EPICS).map(([k,v])=>`<option value="${k}" ${F.epic===k?"selected":""}>${k} · ${esc(v)}</option>`).join("")}</select>

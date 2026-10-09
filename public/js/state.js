@@ -42,6 +42,7 @@ function seed(){
 function load(){ try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ const s=JSON.parse(raw); if(s&&s.v===3&&s.seedWeek===periodKey(0)) return s; } }catch(e){} const s=seed(); s.seedWeek=periodKey(0); return s; }
 function persist(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(S)); }catch(e){} }
 S = load(); S.settings=S.settings||{};
+if(S.view==="approvals") S.view="home";
 S.settings.empEdit=false; // Punch editing remains disabled, including saved demo sessions.
 delete S.settings.simTimeout; S.settings.simDuplicatePunchError=!!S.settings.simDuplicatePunchError;
 const obsoleteUkgTransactions=new Set((S.txns||[]).filter(tx=>tx.action==="Read timecard before retry"||["Timeout","Reconciling","Reconciled"].includes(tx.status)).map(tx=>tx.id));

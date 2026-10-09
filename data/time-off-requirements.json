@@ -1,0 +1,152 @@
+[
+  {
+    "id": "REQ-TO-01",
+    "legacyId": "TO-01",
+    "text": "Provide an overview, request action, and scannable request list. Show balance only on final review.",
+    "status": "Confirmed by user",
+    "journeyIds": [
+      "TO-01",
+      "TO-02",
+      "TO-04"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-02",
+    "legacyId": "TO-02",
+    "text": "Load eligible types/subtypes, assignment, date limits, durations, and questions from active employee configuration.",
+    "status": "Proposed; configuration/source open",
+    "journeyIds": [
+      "TO-02"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-03",
+    "legacyId": "TO-03",
+    "text": "Full Day requires start/end dates; Hours and half-day durations require one date. Only Sick Time accepts past dates. Apply configured eligibility, schedule, regional, and request-period rules; explain blocks/warnings clearly.",
+    "status": "Date/duration rules confirmed; remaining policies open",
+    "journeyIds": [
+      "TO-03"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-04",
+    "legacyId": "TO-04",
+    "text": "Offer configured Full Day, Hours, First Half Day, and Second Half Day durations with clear units/amounts. Full Day supports ranges; others use one date.",
+    "status": "Confirmed by user; availability by type open",
+    "journeyIds": [
+      "TO-02",
+      "TO-03"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-05",
+    "legacyId": "TO-05",
+    "text": "Show current balance only on final review, with unit/as-of time. No projected balance or repetition elsewhere. Label unavailable data; never present older data as current.",
+    "status": "Confirmed by user; unavailable-balance behavior open",
+    "journeyIds": [
+      "TO-01"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-06",
+    "legacyId": "TO-06",
+    "text": "Preserve optional employee notes for the Manager and history. Ask extra questions/documents only when required and explain why; no sensitive medical/personal detail by default.",
+    "status": "Confirmed by user; field limits open",
+    "journeyIds": [
+      "TO-02",
+      "TO-05"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-07",
+    "legacyId": "TO-07",
+    "text": "Provide final review with current balance and confirmation with reference, returned status, dates, and duration.",
+    "status": "Confirmed by user",
+    "journeyIds": [
+      "TO-02"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-08",
+    "legacyId": "TO-08",
+    "text": "Use shared toasts for transient feedback and inline field validation. On submission/refresh failure, preserve input/last confirmed status, avoid false success, and offer Try again for refresh errors.",
+    "status": "Confirmed by user",
+    "journeyIds": [
+      "TO-02",
+      "TO-03",
+      "TO-04"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-09",
+    "legacyId": "TO-09",
+    "text": "No employee editing of submitted requests. Cancel own Submitted requests only; retain Cancelled history.",
+    "status": "Confirmed by user",
+    "journeyIds": [
+      "TO-07"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-10",
+    "legacyId": "TO-10",
+    "text": "Require a non-empty Manager refusal reason before enabling the action. Preserve it in history and show it to the employee.",
+    "status": "Confirmed by user",
+    "journeyIds": [
+      "TO-05"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-11",
+    "legacyId": "TO-11",
+    "text": "Automatically approve eligible requests after three days without Manager action. Record rule, decision, and timestamp; notify the employee.",
+    "status": "Confirmed by user; timer details open",
+    "journeyIds": [
+      "TO-06"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  },
+  {
+    "id": "REQ-TO-12",
+    "legacyId": "TO-12",
+    "text": "Compact desktop form: back link/step indicator together, date fields visible, optional calendar collapsed, and fields/note/action visible without scrolling. Stack/scroll on smaller screens.",
+    "status": "Implemented in prototype; desktop layout verified",
+    "journeyIds": [
+      "TO-02"
+    ],
+    "specRef": "§5.3.3",
+    "notes": "Journey IDs are separate from requirement IDs.",
+    "contentRevision": "2026-10-09-r3"
+  }
+]

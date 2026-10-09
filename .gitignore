@@ -7,3 +7,14 @@
 !.github/workflows/pages.yml
 !public/
 !public/**
+
+# Reviewed, public-safe journey snapshot and its synchronization tools.
+# Raw sheet exports, backups and working documents stay local in outputs/.
+!data/
+!data/journeys.snapshot.json
+!data/journey-assets.json
+!data/time-off-requirements.json
+!scripts/
+!scripts/sync-journeys.mjs
+!scripts/sync-journeys.test.mjs
+!scripts/punch-alignment.test.mjs

@@ -36,6 +36,24 @@ appToastRoot?.addEventListener("focusout",e=>{if(!appToastRoot.contains(e.relate
 appToastRoot?.addEventListener("keydown",e=>{if(e.key==="Escape")toastDismiss();});
 function showPunchNotice(kind,text){ render(); toast(text,kind==="success"?"success":"error"); }
 function clearPunchNotice(){ toastDismiss(); }
+// Employee Punch confirmation follows simulated UKG acceptance, with a guard
+// against duplicate submissions while the response is pending.
+function recordEmployeePunch(emp,type,proj=null,task=null,labor=null,label=type){
+  UI.punchBusy ||= new Set();
+  if(UI.punchBusy.has(emp)) return;
+  UI.punchBusy.add(emp);
+  const finish=p=>{
+    UI.punchBusy.delete(emp);
+    if(S.persona===emp&&S.view==="punch") showPunchNotice("success",`${t("recorded")}: ${t(label)} · ${fmtClock(tsTime(p.t))}${proj?` · ${proj}`:""}`);
+  };
+  const send=breakEnd=>addPunch(emp,type,proj,task,"Punch",type==="OUT"?breakEnd?.t||null:null,labor,p=>{
+    if(type==="IN"){ delete (S.pendingPunchTransfers||{})[emp]; persist(); }
+    finish(p);
+  });
+  if(type==="OUT"&&liveState(emp).st==="brk") addPunch(emp,"BRK_E",null,null,"Punch",null,null,send);
+  else send();
+  render();
+}
 function go(view){ if(S.view==="kiosk"&&view!=="kiosk") kioskReset(); S.view=view; syncAppRoute(view); render(); window.scrollTo({top:0}); }
 function setPersona(k){ kioskReset(); S.persona=k; S.period=0; UI.submitTried=false; UI.homeShowAll=false; UI.apSel.clear(); toResetUI(); go(PERSONAS[k].land); }
 function flash(key){ if(!key) return; setTimeout(()=>{ const el=document.querySelector(`[data-hl="${key}"]`); if(el){ el.scrollIntoView({behavior:"smooth",block:"center"}); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); } },80); }

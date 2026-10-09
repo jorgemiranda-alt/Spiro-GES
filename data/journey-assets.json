@@ -1,0 +1,892 @@
+{
+  "PU-06": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-06-step1.png",
+        "alt": "Desktop view: Punched out: Punch In is available, and Start Break and Punch Out are not.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-06-step1.png",
+        "alt": "Mobile view: Punched out: Punch In is available, and Start Break and Punch Out are not.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-06-step2.png",
+        "alt": "Desktop view: Punched in: the actions are Add Transfer, Start Break, and Punch Out.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-06-step2.png",
+        "alt": "Mobile view: Punched in: the actions are Add Transfer, Start Break, and Punch Out.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-06-step3.png",
+        "alt": "Desktop view: On break: End Break is the primary action and Punch Out is secondary.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-06-step3.png",
+        "alt": "Mobile view: On break: End Break is the primary action and Punch Out is secondary.",
+        "caption": "Step 3 · Mobile"
+      }
+    ]
+  },
+  "CC-04": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/CC-04-step1.png",
+        "alt": "Desktop view: Odoo Project and Task selected in the Punch screen, separate from the labor category fields.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/CC-04-step1.png",
+        "alt": "Mobile view: Odoo Project and Task selected in the Punch screen, separate from the labor category fields.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/CC-04-step2.png",
+        "alt": "Desktop view: Labor categories staged in the Transfer drawer appear in their own box, separate from the Odoo project and task above.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/CC-04-step2.png",
+        "alt": "Mobile view: Labor categories staged in the Transfer drawer appear in their own box, separate from the Odoo project and task above.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "PU-01": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-01-step1.png",
+        "alt": "Desktop view: Punch screen while punched out, showing the optional Odoo Project and Task fields and the Punch In button.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-01-step1.png",
+        "alt": "Mobile view: Punch screen while punched out, showing the optional Odoo Project and Task fields and the Punch In button.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-01-step2.png",
+        "alt": "Desktop view: Odoo Project picker open, listing only the active projects assigned to the employee.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-01-step2.png",
+        "alt": "Mobile view: Odoo Project picker open, listing only the active projects assigned to the employee.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-01-step3.png",
+        "alt": "Desktop view: After Punch In with an Odoo project selected, the punch shows as In in Recent punches.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-01-step3.png",
+        "alt": "Mobile view: After Punch In with an Odoo project selected, the punch shows as In in Recent punches.",
+        "caption": "Step 3 · Mobile"
+      }
+    ]
+  },
+  "PU-12": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-12-step1.png",
+        "alt": "Desktop view: Odoo Project picker with Manage Odoo Project at the bottom.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-12-step1.png",
+        "alt": "Mobile view: Odoo Project picker with Manage Odoo Project at the bottom.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-12-step2.png",
+        "alt": "Desktop view: Manage Odoo Project lists the assigned projects with visibility toggles.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-12-step2.png",
+        "alt": "Mobile view: Manage Odoo Project lists the assigned projects with visibility toggles.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-12-step3.png",
+        "alt": "Desktop view: Add projects from Odoo lists active projects that are not yet assigned, with a search box.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-12-step3.png",
+        "alt": "Mobile view: Add projects from Odoo lists active projects that are not yet assigned, with a search box.",
+        "caption": "Step 3 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-12-step4.png",
+        "alt": "Desktop view: After Add and Back, the added project is listed as assigned and visible.",
+        "caption": "Step 4 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-12-step4.png",
+        "alt": "Mobile view: After Add and Back, the added project is listed as assigned and visible.",
+        "caption": "Step 4 · Mobile"
+      }
+    ]
+  },
+  "PU-03": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-03-step1.png",
+        "alt": "Desktop view: Punch screen while punched in, with Start Break available.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-03-step1.png",
+        "alt": "Mobile view: Punch screen while punched in, with Start Break available.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-03-step2.png",
+        "alt": "Desktop view: On break: End Break is the primary action, Punch Out is secondary, and transfers are disabled.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-03-step2.png",
+        "alt": "Mobile view: On break: End Break is the primary action, Punch Out is secondary, and transfers are disabled.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-03-step3.png",
+        "alt": "Desktop view: After End Break, the shift is back In and the break is recorded in Recent punches.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-03-step3.png",
+        "alt": "Mobile view: After End Break, the shift is back In and the break is recorded in Recent punches.",
+        "caption": "Step 3 · Mobile"
+      }
+    ]
+  },
+  "PU-04": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-04-step1.png",
+        "alt": "Desktop view: Punch screen while punched out, with Add Transfer available to stage labor categories.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-04-step1.png",
+        "alt": "Mobile view: Punch screen while punched out, with Add Transfer available to stage labor categories.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-04-step2.png",
+        "alt": "Desktop view: Transfer drawer opened from Add Transfer, showing the employee, primary location, and Add Labor Category.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-04-step2.png",
+        "alt": "Mobile view: Transfer drawer opened from Add Transfer, showing the employee, primary location, and Add Labor Category.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-04-step3.png",
+        "alt": "Desktop view: Labor category step with a Labor Category Project and Task / LOB chosen.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-04-step3.png",
+        "alt": "Mobile view: Labor category step with a Labor Category Project and Task / LOB chosen.",
+        "caption": "Step 3 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-04-step4.png",
+        "alt": "Desktop view: Transfer review with the chosen labor categories and the Confirm transfer action.",
+        "caption": "Step 4 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-04-step4.png",
+        "alt": "Mobile view: Transfer review with the chosen labor categories and the Confirm transfer action.",
+        "caption": "Step 4 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-04-step5.png",
+        "alt": "Desktop view: Punch screen after confirming: the labor categories are staged for the next Punch In.",
+        "caption": "Step 5 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-04-step5.png",
+        "alt": "Mobile view: Punch screen after confirming: the labor categories are staged for the next Punch In.",
+        "caption": "Step 5 · Mobile"
+      }
+    ]
+  },
+  "PU-02": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-02-step1.png",
+        "alt": "Desktop view: Punch screen while punched in, with Punch Out as the primary action and Start Break as the secondary action.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-02-step1.png",
+        "alt": "Mobile view: Punch screen while punched in, with Punch Out as the primary action and Start Break as the secondary action.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-02-step2.png",
+        "alt": "Desktop view: After Punch Out, the shift is closed, Punch In is available again, and the Punch Out event is in Recent punches.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-02-step2.png",
+        "alt": "Mobile view: After Punch Out, the shift is closed, Punch In is available again, and the Punch Out event is in Recent punches.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "PU-05": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-05-step1.png",
+        "alt": "Desktop view: Punch screen with the Odoo Project picker available.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-05-step1.png",
+        "alt": "Mobile view: Punch screen with the Odoo Project picker available.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-05-step2.png",
+        "alt": "Desktop view: Odoo Project picker lists only active projects assigned to the employee; inactive or unassigned projects are not offered.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-05-step2.png",
+        "alt": "Mobile view: Odoo Project picker lists only active projects assigned to the employee; inactive or unassigned projects are not offered.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "PU-07": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-07-step1.png",
+        "alt": "Desktop view: Recent punches before a new punch.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-07-step1.png",
+        "alt": "Mobile view: Recent punches before a new punch.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-07-step2.png",
+        "alt": "Desktop view: After Punch In, the confirmation shows the action and local time, and the event appears in Recent punches.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-07-step2.png",
+        "alt": "Mobile view: After Punch In, the confirmation shows the action and local time, and the event appears in Recent punches.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "PU-08": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-08-step1.png",
+        "alt": "Desktop view: Punch screen before a punch is sent to UKG.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-08-step1.png",
+        "alt": "Mobile view: Punch screen before a punch is sent to UKG.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-08-step2.png",
+        "alt": "Desktop view: Punch In returns the duplicate-punch error from UKG, and the error is shown as returned; no punch is recorded.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-08-step2.png",
+        "alt": "Mobile view: Punch In returns the duplicate-punch error from UKG, and the error is shown as returned; no punch is recorded.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TC-01": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TC-01-step1.png",
+        "alt": "Desktop view: My Timecard for the current period: daily In, Transfer, Out, Hours, Daily, and Period columns.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-01-step1.png",
+        "alt": "Mobile view: My Timecard for the current period: daily In, Transfer, Out, Hours, Daily, and Period columns.",
+        "caption": "Step 1 · Mobile"
+      }
+    ]
+  },
+  "TC-02": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TC-02-step1.png",
+        "alt": "Desktop view: My Timecard for the current period, with Previous, Today, and Next controls.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-02-step1.png",
+        "alt": "Mobile view: My Timecard for the current period, with Previous, Today, and Next controls.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TC-02-step2.png",
+        "alt": "Desktop view: Previous period: the dates, recorded punches, and totals change to the prior period.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-02-step2.png",
+        "alt": "Mobile view: Previous period: the dates, recorded punches, and totals change to the prior period.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TC-03": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TC-03-step1.png",
+        "alt": "Desktop view: My Timecard grid: recorded In and Transfer values open their details.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-03-step1.png",
+        "alt": "Mobile view: My Timecard grid: recorded In and Transfer values open their details.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TC-03-step2.png",
+        "alt": "Desktop view: Punch details for a recorded In time: Date, Time, and Punch type, read-only with no Edit or Comments.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-03-step2.png",
+        "alt": "Mobile view: Punch details for a recorded In time: Date, Time, and Punch type, read-only with no Edit or Comments.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TC-03-step3.png",
+        "alt": "Desktop view: Transfer details: the full Project / Task allocation and the separate Labor category values.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-03-step3.png",
+        "alt": "Mobile view: Transfer details: the full Project / Task allocation and the separate Labor category values.",
+        "caption": "Step 3 · Mobile"
+      }
+    ]
+  },
+  "TC-04": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TC-04-step1.png",
+        "alt": "Desktop view: Punch details are read-only: no Edit, Comments, or correction action is offered while punch editing is an open decision.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-04-step1.png",
+        "alt": "Mobile view: Punch details are read-only: no Edit, Comments, or correction action is offered while punch editing is an open decision.",
+        "caption": "Step 1 · Mobile"
+      }
+    ]
+  },
+  "TC-07": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TC-07-step1.png",
+        "alt": "Desktop view: My Timecard grid above the Totals section.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-07-step1.png",
+        "alt": "Mobile view: My Timecard grid above the Totals section.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TC-07-step2.png",
+        "alt": "Desktop view: Totals grouped by project and task, with the period total.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TC-07-step2.png",
+        "alt": "Mobile view: Totals grouped by project and task, with the period total.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "GR-02": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-02-step1.png",
+        "alt": "Desktop view: Rows are pre-filled from the employee's assigned, visible projects; hidden projects are not listed. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-02-step1.png",
+        "alt": "Mobile view: Rows are pre-filled from the employee's assigned, visible projects; hidden projects are not listed. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "GR-03": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-03-step1.png",
+        "alt": "Desktop view: Add new opens the transfer drawer on the project step, with the paycode and the transfer box. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-03-step1.png",
+        "alt": "Mobile view: Add new opens the transfer drawer on the project step, with the paycode and the transfer box. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/desktop/GR-03-step2.png",
+        "alt": "Desktop view: Labor category step with PL-8810 chosen and its required task selected. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 2 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-03-step2.png",
+        "alt": "Mobile view: Labor category step with PL-8810 chosen and its required task selected. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 2 · Mobile · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/desktop/GR-03-step3.png",
+        "alt": "Desktop view: After Apply, the new project row appears in the grid. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 3 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-03-step3.png",
+        "alt": "Mobile view: After Apply, the new project row appears in the grid. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 3 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "GR-04": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-04-step1.png",
+        "alt": "Desktop view: PL-8810 requires a task: the labor category step shows the project with no task chosen. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-04-step1.png",
+        "alt": "Mobile view: PL-8810 requires a task: the labor category step shows the project with no task chosen. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/desktop/GR-04-step2.png",
+        "alt": "Desktop view: Apply is blocked, and the drawer explains that PL-8810 needs a task. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 2 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-04-step2.png",
+        "alt": "Mobile view: Apply is blocked, and the drawer explains that PL-8810 needs a task. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 2 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "GR-05": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-05-step1.png",
+        "alt": "Desktop view: A day total above 24 hours is flagged at once: 30 hours entered in a single day cell. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-05-step1.png",
+        "alt": "Mobile view: A day total above 24 hours is flagged at once: 30 hours entered in a single day cell. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "GR-07": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-07-step1.png",
+        "alt": "Desktop view: Projects / Manage projects lists the assigned projects with visibility toggles; hidden projects stay assigned. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-07-step1.png",
+        "alt": "Mobile view: Projects / Manage projects lists the assigned projects with visibility toggles; hidden projects stay assigned. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "GR-08": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-08-step1.png",
+        "alt": "Desktop view: Valid hours entered; Save is now available. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-08-step1.png",
+        "alt": "Mobile view: Valid hours entered; Save is now available. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/desktop/GR-08-step2.png",
+        "alt": "Desktop view: After Save, the hours are saved and the row shows the outcome for the employee's type. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 2 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-08-step2.png",
+        "alt": "Mobile view: After Save, the hours are saved and the row shows the outcome for the employee's type. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 2 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "GR-09": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-09-step1.png",
+        "alt": "Desktop view: Salaried employee enters project hours; Save becomes available once a value changes.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-09-step1.png",
+        "alt": "Mobile view: Salaried employee enters project hours; Save becomes available once a value changes.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/GR-09-step2.png",
+        "alt": "Desktop view: After Save, the salaried rows show Recorded and no approval step applies.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-09-step2.png",
+        "alt": "Mobile view: After Save, the salaried rows show Recorded and no approval step applies.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "GR-10": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-10-step1.png",
+        "alt": "Desktop view: The approver opens a pending hourly line and enters a required note before Reject can be used.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-10-step1.png",
+        "alt": "Mobile view: The approver opens a pending hourly line and enters a required note before Reject can be used.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/GR-10-step2.png",
+        "alt": "Desktop view: After Reject, the employee's grid shows the line as Rejected with the approver's note.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-10-step2.png",
+        "alt": "Mobile view: After Reject, the employee's grid shows the line as Rejected with the approver's note.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "GR-11": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/GR-11-step1.png",
+        "alt": "Desktop view: Current-week reminder: empty earlier weekdays are flagged, with the Friday 17:00 deadline. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Desktop · historical hourly example"
+      },
+      {
+        "src": "journeys/prototype/mobile/GR-11-step1.png",
+        "alt": "Mobile view: Current-week reminder: empty earlier weekdays are flagged, with the Friday 17:00 deadline. Historical hourly example; current baseline demo link uses salaried Maya.",
+        "caption": "Step 1 · Mobile · historical hourly example"
+      }
+    ]
+  },
+  "TO-01": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-01-step1.png",
+        "alt": "Desktop view: New request: the type and dates are chosen on the request form.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-01-step1.png",
+        "alt": "Mobile view: New request: the type and dates are chosen on the request form.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-01-step2.png",
+        "alt": "Desktop view: Final review: the request summary with the current balance and its as-of time before submitting.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-01-step2.png",
+        "alt": "Mobile view: Final review: the request summary with the current balance and its as-of time before submitting.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TO-02": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-02-step1.png",
+        "alt": "Desktop view: Request form with the type, dates, and optional note entered.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-02-step1.png",
+        "alt": "Mobile view: Request form with the type, dates, and optional note entered.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-02-step2.png",
+        "alt": "Desktop view: Review before submitting: the request is sent once, and the button is disabled while it is sent.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-02-step2.png",
+        "alt": "Mobile view: Review before submitting: the request is sent once, and the button is disabled while it is sent.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-02-step3.png",
+        "alt": "Desktop view: Confirmation shows the request reference, returned status, dates, and duration, without the balance.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-02-step3.png",
+        "alt": "Mobile view: Confirmation shows the request reference, returned status, dates, and duration, without the balance.",
+        "caption": "Step 3 · Mobile"
+      }
+    ]
+  },
+  "TO-03": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-03-step1.png",
+        "alt": "Desktop view: Sick Time: past dates are allowed for this type.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-03-step1.png",
+        "alt": "Mobile view: Sick Time: past dates are allowed for this type.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-03-step2.png",
+        "alt": "Desktop view: PTO: only today or a future date is accepted for this type.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-03-step2.png",
+        "alt": "Mobile view: PTO: only today or a future date is accepted for this type.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TO-04": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-04-step1.png",
+        "alt": "Desktop view: My requests lists the employee's requests with their status: Submitted, Approved, Refused, or Cancelled.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-04-step1.png",
+        "alt": "Mobile view: My requests lists the employee's requests with their status: Submitted, Approved, Refused, or Cancelled.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-04-step2.png",
+        "alt": "Desktop view: A request's details show its status, dates, and history.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-04-step2.png",
+        "alt": "Mobile view: A request's details show its status, dates, and history.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TO-05": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-05-step1.png",
+        "alt": "Desktop view: Requests needing review: the Manager's team queue lists Submitted requests for the employees they manage.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-05-step1.png",
+        "alt": "Mobile view: Requests needing review: the Manager's team queue lists Submitted requests for the employees they manage.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-05-step2.png",
+        "alt": "Desktop view: Refuse needs a reason: the reason is entered before the decision can be confirmed.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-05-step2.png",
+        "alt": "Mobile view: Refuse needs a reason: the reason is entered before the decision can be confirmed.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TO-06": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-06-step1.png",
+        "alt": "Desktop view: A PTO request still Submitted shows its automatic-approval deadline.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-06-step1.png",
+        "alt": "Mobile view: A PTO request still Submitted shows its automatic-approval deadline.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-06-step2.png",
+        "alt": "Desktop view: After the three-day rule runs, the history records the automatic decision, the rule, and the time.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-06-step2.png",
+        "alt": "Mobile view: After the three-day rule runs, the history records the automatic decision, the rule, and the time.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "TO-07": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/TO-07-step1.png",
+        "alt": "Desktop view: A Submitted request offers Cancel; the employee cannot edit it.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-07-step1.png",
+        "alt": "Mobile view: A Submitted request offers Cancel; the employee cannot edit it.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/TO-07-step2.png",
+        "alt": "Desktop view: After confirming, the request shows Cancelled and stays in history.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/TO-07-step2.png",
+        "alt": "Mobile view: After confirming, the request shows Cancelled and stays in history.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "PU-09": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-09-step1.png",
+        "alt": "Desktop view: Kiosk home with three equal tiles, Punch In, Punch Out, and Recent Punches; no employee details are shown.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-09-step1.png",
+        "alt": "Mobile view: Kiosk home with three equal tiles, Punch In, Punch Out, and Recent Punches; no employee details are shown.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-09-step2.png",
+        "alt": "Desktop view: After Punch In is selected, the kiosk asks for the badge scan only.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-09-step2.png",
+        "alt": "Mobile view: After Punch In is selected, the kiosk asks for the badge scan only.",
+        "caption": "Step 2 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/PU-09-step3.png",
+        "alt": "Desktop view: After the badge is accepted, a brief result appears and the kiosk returns home.",
+        "caption": "Step 3 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-09-step3.png",
+        "alt": "Mobile view: After the badge is accepted, a brief result appears and the kiosk returns home.",
+        "caption": "Step 3 · Mobile"
+      }
+    ]
+  },
+  "PU-10": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/PU-10-step1.png",
+        "alt": "Desktop view: Punch In at the kiosk asks for the badge only; no job or project barcode is requested.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/PU-10-step1.png",
+        "alt": "Mobile view: Punch In at the kiosk asks for the badge only; no job or project barcode is requested.",
+        "caption": "Step 1 · Mobile"
+      }
+    ]
+  },
+  "KI-01": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/KI-01-step1.png",
+        "alt": "Desktop view: Recent Punches opens the badge scan screen with a 60-second countdown.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/KI-01-step1.png",
+        "alt": "Mobile view: Recent Punches opens the badge scan screen with a 60-second countdown.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/KI-01-step2.png",
+        "alt": "Desktop view: After the badge is accepted, up to six recent events are shown, newest first, with no employee name.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/KI-01-step2.png",
+        "alt": "Mobile view: After the badge is accepted, up to six recent events are shown, newest first, with no employee name.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  },
+  "KI-02": {
+    "shots": [
+      {
+        "src": "journeys/prototype/desktop/KI-02-step1.png",
+        "alt": "Desktop view: The scan screen shows its 60-second countdown; Back or Cancel clears the action at once.",
+        "caption": "Step 1 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/KI-02-step1.png",
+        "alt": "Mobile view: The scan screen shows its 60-second countdown; Back or Cancel clears the action at once.",
+        "caption": "Step 1 · Mobile"
+      },
+      {
+        "src": "journeys/prototype/desktop/KI-02-step2.png",
+        "alt": "Desktop view: After Back, the kiosk returns to its home screen with no badge or action left visible.",
+        "caption": "Step 2 · Desktop"
+      },
+      {
+        "src": "journeys/prototype/mobile/KI-02-step2.png",
+        "alt": "Mobile view: After Back, the kiosk returns to its home screen with no badge or action left visible.",
+        "caption": "Step 2 · Mobile"
+      }
+    ]
+  }
+}

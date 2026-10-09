@@ -35,6 +35,7 @@ document.addEventListener("click",e=>{
   }
   const el=e.target.closest("[data-act]"); if(!el) return;
   const a=el.dataset.act, emp=S.persona;
+  if(UI.punchBusy?.has(emp)&&["punchIn","punchOut","startBrk","endBrk","startXfer","xferPick","xferToggle"].includes(a)) return;
   if(S.view==="timecard"&&TIMECARD_DISABLED_ACTIONS.has(a)) return;
   if(a==="toast-dismiss"){ toastDismiss(); return; }
   if(el.closest("#toast")) toastDismiss();
@@ -83,9 +84,10 @@ document.addEventListener("click",e=>{
     }
     // punch
     case "punchIn": {
-      const L=liveState(emp), pending=(S.pendingPunchTransfers||{})[emp], p=S._selProj&&assigned(emp).includes(S._selProj)&&!isPunchOdooHidden(emp,S._selProj)?S._selProj:"", tk=p&&PROJECTS[p].tasks.includes(S._selTask)?S._selTask:"";
-      const err=p?validateProject(emp,p):null;
+      const L=liveState(emp), pending=(S.pendingPunchTransfers||{})[emp], p=S._selProj||"";
+      const err=p?(validateProject(emp,p)||(isPunchOdooHidden(emp,p)?"This project is hidden. Select an active available project or No Project.":null)):null;
       if(err){showPunchNotice("error",err);break;}
+      const tk=p&&PROJECTS[p].tasks.includes(S._selTask)?S._selTask:"";
       if(L.st!=="out"){showPunchNotice("error","You are already punched in.");break;}
       if(S.settings.simDuplicatePunchError){
         S.settings.simDuplicatePunchError=false; persist();
@@ -93,9 +95,7 @@ document.addEventListener("click",e=>{
         showPunchNotice("error",tx.error); break;
       }
       const d=laborDefaults(emp), labor=pending?pending:{project:d.project||"",task:d.task||"",tc:d.tc||"",func:d.func||""};
-      const punch=addPunch(emp,"IN",p||null,tk||null,"Punch",null,labor);
-      delete (S.pendingPunchTransfers||{})[emp]; persist();
-      showPunchNotice("success",`${t("recorded")}: ${t("punchIn")} · ${fmtClock(tsTime(punch.t))}${p?` · ${p}`:""}`); break;
+      recordEmployeePunch(emp,"IN",p||null,tk||null,labor,"punchIn"); break;
     }
     case "punchOut": {
       const L=liveState(emp); if(L.st==="out") break;
@@ -104,12 +104,10 @@ document.addEventListener("click",e=>{
         const tx=simulatedUkgError(emp,"Punch Out","POST /v1/timekeeping/timecard","punches.add action PUNCH_OUT","Duplicate punch. UKG did not record this punch.");
         showPunchNotice("error",tx.error); break;
       }
-      if(L.st==="brk") addPunch(emp,"BRK_E");
-      const punch=addPunch(emp,"OUT",null,null,"Punch");
-      showPunchNotice("success",`${t("recorded")}: ${t("punchOut")} · ${fmtClock(tsTime(punch.t))}`); break;
+      recordEmployeePunch(emp,"OUT",null,null,null,"punchOut"); break;
     }
-    case "startBrk": { const punch=addPunch(emp,"BRK_S"); showPunchNotice("success",`${t("recorded")}: ${t("startBreak")} · ${fmtClock(tsTime(punch.t))}`); break; }
-    case "endBrk": { const punch=addPunch(emp,"BRK_E"); showPunchNotice("success",`${t("recorded")}: ${t("endBreak")} · ${fmtClock(tsTime(punch.t))}`); break; }
+    case "startBrk": { if(liveState(emp).st==="in") recordEmployeePunch(emp,"BRK_S",null,null,null,"startBreak"); break; }
+    case "endBrk": { if(liveState(emp).st==="brk") recordEmployeePunch(emp,"BRK_E",null,null,null,"endBreak"); break; }
     case "startXfer": UI.xferOpen=false; openPunchTransfer(); break;
     case "xferToggle": UI.xferOpen=!UI.xferOpen; render(); setTimeout(()=>{ if(UI.xferOpen) focusXferOption(); else document.getElementById("xferTrigger")?.focus(); },0); break;
     case "xferPick": pickPunchTransfer(el.dataset.id); break;
@@ -149,21 +147,6 @@ document.addEventListener("click",e=>{
       let added=0, skipped=0; prev.rows.forEach(r=>{ if(r.archived) return; if(!PROJECTS[r.proj].active||!assigned(emp).includes(r.proj)){ skipped++; return; } if(g.rows.some(x=>x.proj===r.proj)) return; g.rows.push({id:uid("r"),proj:r.proj,task:r.task,h:[...r.h],status:"Draft",note:"",archived:false}); added++; });
       render(); toast(`Copied ${added} row${added===1?"":"s"}${skipped?`, ${skipped} closed project${skipped>1?"s":""} skipped`:""}.`,"success"); break; }
     case "addRow": openNewTime(); break;
-    // approvals
-    case "apFilter": UI.apFilter=el.dataset.f; UI.apSel.clear(); render(); break;
-    case "apSel": el.checked?UI.apSel.add(el.dataset.id):UI.apSel.delete(el.dataset.id); render(); break;
-    case "apSelAll": S.approvals.filter(x=>x.proj===el.dataset.proj&&x.status==="Pending").forEach(x=>el.checked?UI.apSel.add(x.id):UI.apSel.delete(x.id)); render(); break;
-    case "apApprove": { const ids=[...UI.apSel]; decide(ids,"Approved"); toast(`${ids.length} line(s) approved.`,"success"); break; }
-    case "apOne": decide([el.dataset.id],"Approved"); toast("Line approved.","success"); break;
-    case "apReject": { const x=S.approvals.find(y=>y.id===el.dataset.id); openDialog(`${t("reject")} · ${x.proj}`,`<div class="sub">${esc(x.empName)} · ${fmtH(x.hours)} h · ${esc(x.task||"")}</div><label class="field"><span>Note to employee (required)</span><textarea class="input" id="rNote" data-act="rNote" rows="3" placeholder="Tell the employee what to fix"></textarea></label>`,`<button class="btn" data-act="closeDlg">${esc(t("cancel"))}</button><button class="btn danger" id="rBtn" data-act="doReject" data-id="${x.id}" disabled>${esc(t("reject"))}</button>`); break; }
-    case "doReject": { const n=$("#rNote").value.trim(); if(!n) break; closeDialog(); decide([el.dataset.id],"Rejected",n); toast("Line returned to the employee with your note.","success"); break; }
-    case "apEdit": { const x=S.approvals.find(y=>y.id===el.dataset.id); openDialog(`${t("edit")} · ${x.proj}`,`<div class="sub">${esc(x.empName)} · ${esc(x.task||"")}</div><div class="two"><label class="field"><span>${esc(t("hours"))}</span><input class="input" id="eH" inputmode="decimal" value="${x.hours}"></label><label class="field"><span>${esc(t("reason"))} (required)</span><input class="input" id="eR" placeholder="Why the change"></label></div><div class="err-text" id="dlgErr" hidden></div>`,`<button class="btn" data-act="closeDlg">${esc(t("cancel"))}</button><button class="btn primary" data-act="doEdit" data-id="${x.id}">${esc(t("save"))}</button>`); break; }
-    case "doEdit": { const x=S.approvals.find(y=>y.id===el.dataset.id), h=num($("#eH").value), r=$("#eR").value.trim(); if(isNaN(h)||h<=0){ dlgErr("Enter hours greater than 0."); break; } if(!r){ dlgErr("Enter a reason."); break; }
-      const from=x.hours, f=h/from; x.edited={from,reason:r}; x.hours=h; x.days=x.days.map(d=>Math.round(d*f*100)/100);
-      if(x.rowId){ const g=S.grid[x.emp][x.period], row=g&&g.rows.find(q=>q.id===x.rowId); if(row){ row.edited=`${fmtH(from)} → ${fmtH(h)} h (${r})`; row.h=row.h.map(v=>v===""?"":String(Math.round(num(v)*f*100)/100)); } }
-      S.audit.unshift({ts:nowTs(),who:"Oliver Grant",emp:x.emp,what:`Edited ${x.proj} hours ${fmtH(from)} → ${fmtH(h)}`,detail:x.empName,reason:r});
-      ukg("oliver","Manager edit","POST /v1/timekeeping/timecard",`${x.proj} ${x.empName} ${fmtH(from)}→${fmtH(h)}h`);
-      closeDialog(); render(); toast("Hours updated. Original value kept in audit.","success"); break; }
     // kiosk
     case "badge": kioskBadge(el.dataset.code); break;
     case "scan": kioskScan(el.dataset.code); break;
@@ -177,8 +160,8 @@ document.addEventListener("click",e=>{
     case "shotKeep": break;
     case "shotClose": $("#layer").innerHTML=""; break;
     case "epicToggle": { const C=UI.jCollapsed||(UI.jCollapsed=new Set()), ep=el.dataset.epic; C.has(ep)?C.delete(ep):C.add(ep); render(); break; }
-    case "jRun": { e.stopPropagation(); const j=JOURNEYS.find(x=>x.id===el.dataset.id); const [p,v,hl]=j.demo; S.persona=p; S.period=J_PERIOD[j.id]??0; if(j.id==="PA-06"){} if(v==="kiosk") kioskReset(); go(v); flash(J_FOCUS[j.id]||hl); toast(`${j.id} · ${j.name}`); break; }
-    case "reset": try{localStorage.removeItem(STORE_KEY);}catch(_){} S=seed(); S.seedWeek=periodKey(0); UI.drawer=false; $("#layer").innerHTML=""; kioskReset(); render(); toast("Demo data reset.","success"); break;
+    case "jRun": { e.stopPropagation(); const j=JOURNEYS.find(x=>x.id===el.dataset.id); if(!j||!j.demo[0]||!j.demo[1]||j.cov==="Not prototyped"||["Future","Out of scope"].includes(j.scope)) break; const [p,v,hl]=j.demo; S.persona=p; S.period=J_PERIOD[j.id]??0; if(v==="kiosk") kioskReset(); go(v); flash(J_FOCUS[j.id]||hl); toast(`${j.id} · ${j.name}${j.scope==="Draft"?" · Draft illustration":""}`); break; }
+    case "reset": try{localStorage.removeItem(STORE_KEY);}catch(_){} S=seed(); S.seedWeek=periodKey(0); UI.punchBusy=new Set(); UI.drawer=false; $("#layer").innerHTML=""; kioskReset(); render(); toast("Demo data reset.","success"); break;
   }
 });
 document.addEventListener("contextmenu",e=>{
@@ -225,7 +208,7 @@ function openDrawer(){
     <label class="toggle"><input type="checkbox" id="setTags" data-act="setTags" ${S.settings.tags?"checked":""}><span><b>Show journey tags</b><small>Dashed IDs link each part of the screen to its journey.</small></span></label>
     <label class="toggle"><input type="checkbox" id="setHideViewAs" data-act="setHideViewAs" ${S.settings.hideViewAs?"checked":""}><span><b>Hide “Viewing as”</b><small>Hides the persona label and selector.</small></span></label>
     <label class="toggle"><input type="checkbox" id="setPunchError" data-act="setPunchError" ${S.settings.simDuplicatePunchError?"checked":""}><span><b>Simulate a duplicate-punch error from UKG</b><small>The next Punch In or Punch Out displays the returned error (PU-08).</small></span></label>
-    <div class="stack"><b>Try these paths</b><span class="sub">1. Ava › Punch: punch in, transfer, break, punch out. 2. Ava › My Timecard › Previous period: review punch details and totals. 3. Oliver › Approvals: approve, edit, reject with a note. 4. Zofia › Project hours: see the rejection, fix, resubmit. 5. Lukas › Kiosk: badge, scan jobs, try MUC-1999.</span></div>
+    <div class="stack"><b>Try these paths</b><span class="sub">1. Ava › Punch: punch in, transfer, break, punch out. 2. Ava › My Timecard › Previous period: review punch details and totals. 3. Maya › Project hours: enter, validate and save weekly hours. 4. Oliver › Time Off: review team requests. 5. Lukas › Kiosk: select an action and scan a badge.</span></div>
     ${toDemoSettings()}
     <button class="btn danger" data-act="reset">Reset demo data</button>
     <p class="sub">Data stays in this browser only. Nothing is sent to UKG or Odoo; calls are simulated and logged in the UKG sync tabs.</p></div></aside></div>`;

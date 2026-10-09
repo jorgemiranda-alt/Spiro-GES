@@ -2,7 +2,7 @@
 function ukg(emp, action, endpoint, summary, onDone){
   const tx={id:uid("tx"),ts:nowTs(),emp,action,endpoint,summary,status:"Submitted",ref:""};
   S.txns.unshift(tx);
-  setTimeout(()=>{ tx.status="Accepted"; tx.ref="UKG-"+(480000+S.seq); tick(); onDone&&onDone(tx); },850);
+  setTimeout(()=>{ tx.status="Accepted"; tx.ref="UKG-"+(480000+S.seq); onDone&&onDone(tx); tick(); },850);
   return tx.id;
 }
 function simulatedUkgError(emp, action, endpoint, summary, message){
@@ -33,14 +33,18 @@ function liveState(emp){
   }
   return {st,proj,task,labor,since,segStart,last:ps[ps.length-1]};
 }
-function addPunch(emp,type,proj,task,src="Punch",at=null,labor=null){
+function addPunch(emp,type,proj,task,src="Punch",at=null,labor=null,onAccepted=null){
   const categories=labor?{project:labor.project||"",task:labor.task||"",tc:labor.tc||"",func:labor.func||""}:null;
   const categorySummary=categories?[["Labor Category Project",categories.project],["Labor Category Task / LOB",categories.task],["Timecard Code",categories.tc],["Function",categories.func]].filter(([,v])=>v).map(([k,v])=>`${k}: ${v}`).join(" · "):"";
   const p={id:uid("p"),t:at||nowTs(),type,proj:proj||null,task:task||null,labor:categories,src,sync:null};
-  S.punches[emp].push(p);
   const label={IN:"Punch in",OUT:"Punch out",BRK_S:"Break start",BRK_E:"Break end",XFER:"Transfer"}[type];
-  p.sync=ukg(emp,label,"POST /v1/timekeeping/timecard",`punches.add ${proj&&(type==="XFER"||type==="IN")?`transfer.project=${proj}`:""}${categorySummary?` labor.categories=${categorySummary}`:""} @ ${tsTime(p.t)}`.trim());
-  S.audit.unshift({ts:p.t,who:PERSONAS[emp].name,emp,what:`${label}${proj?` · ${proj}${task?" / "+task:""}`:""}`,detail:`Source: ${src}${categorySummary?` · Labor categories: ${categorySummary}`:""}`,reason:""});
+  const state=S;
+  const commit=()=>{
+    state.punches[emp].push(p);
+    state.audit.unshift({ts:p.t,who:PERSONAS[emp].name,emp,what:`${label}${proj?` · ${proj}${task?" / "+task:""}`:""}`,detail:`Source: ${src}${categorySummary?` · Labor categories: ${categorySummary}`:""}`,reason:""});
+  };
+  if(!onAccepted) commit();
+  p.sync=ukg(emp,label,"POST /v1/timekeeping/timecard",`punches.add ${proj&&(type==="XFER"||type==="IN")?`transfer.project=${proj}`:""}${categorySummary?` labor.categories=${categorySummary}`:""} @ ${tsTime(p.t)}`.trim(),onAccepted?()=>{if(S!==state)return;commit();onAccepted(p);}:null);
   persist(); return p;
 }
 function validateProject(emp,code){

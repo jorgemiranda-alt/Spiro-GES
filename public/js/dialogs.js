@@ -16,7 +16,7 @@ function closeTcDetailsPopover(returnFocus=false){
 function tcDetailsMarkup(title,details,laborFields){
   return `<header><h3>${esc(title)}</h3><button type="button" class="icon-btn" data-act="closeTcDetails" aria-label="Close details">${icon("x",18)}</button></header>
     <dl class="tc-transfer-details">${details.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>
-    <section class="tc-transfer-category"><h4>Labor category</h4>${laborFields.length?`<dl class="tc-transfer-category-details">${laborFields.map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`:`<p class="sub">No labor category recorded.</p>`}</section>`;
+    <section class="tc-transfer-category"><h4>Labor category</h4>${laborFields.length?`<p class="tc-transfer-category-values">${esc(laborFields.map(([,value])=>value).join(", "))}</p>`:`<p class="sub">No labor category recorded.</p>`}</section>`;
 }
 function placeTcDetailsPopover(el,pop,point={}){
   tcDetailsTrigger=el; el.setAttribute("aria-expanded","true"); el.setAttribute("aria-controls","tcDetailsPopover");
