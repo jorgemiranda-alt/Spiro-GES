@@ -14,7 +14,20 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("keydown",e=>{
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("tr.jgroup")){ e.preventDefault(); e.target.click(); }
 });
+/* Transfer picker: close without a full render (keeps the click or Tab target alive); focus the selected option, or the last with "last". */
+function closeXferMenu(focusTrigger){
+  UI.xferOpen=false; document.getElementById("xferMenu")?.remove();
+  document.querySelector(".xfer-picker")?.classList.remove("is-open");
+  const trigger=document.getElementById("xferTrigger"); trigger?.setAttribute("aria-expanded","false"); trigger?.removeAttribute("aria-controls");
+  if(focusTrigger) trigger?.focus();
+}
+function focusXferOption(where){
+  const options=[...document.querySelectorAll("#xferMenu .xfer-option")];
+  const target=where==="last"?options[options.length-1]:where==="first"?options[0]:(options.find(o=>o.classList.contains("is-selected"))||options[0]);
+  target?.focus();
+}
 document.addEventListener("click",e=>{
+  if(UI.xferOpen&&!e.target.closest(".xfer-picker")) closeXferMenu(false);
   if(UI.punchOdooOpen&&!e.target.closest(".punch-project-picker")){
     UI.punchOdooOpen=false; UI.punchOdooQuery="";
     document.getElementById("punchOdooProjectMenu")?.remove();
@@ -97,7 +110,9 @@ document.addEventListener("click",e=>{
     }
     case "startBrk": { const punch=addPunch(emp,"BRK_S"); showPunchNotice("success",`${t("recorded")}: ${t("startBreak")} · ${fmtClock(tsTime(punch.t))}`); break; }
     case "endBrk": { const punch=addPunch(emp,"BRK_E"); showPunchNotice("success",`${t("recorded")}: ${t("endBreak")} · ${fmtClock(tsTime(punch.t))}`); break; }
-    case "startXfer": openPunchTransfer(); break;
+    case "startXfer": UI.xferOpen=false; openPunchTransfer(); break;
+    case "xferToggle": UI.xferOpen=!UI.xferOpen; render(); setTimeout(()=>{ if(UI.xferOpen) focusXferOption(); else document.getElementById("xferTrigger")?.focus(); },0); break;
+    case "xferPick": pickPunchTransfer(el.dataset.id); break;
     case "armPunchError": S.settings.simDuplicatePunchError=true; persist(); render(); toast("Next Punch In or Punch Out will show a duplicate-punch error from UKG."); break;
     // timecard
     case "mpOpen": manageProjects(); break;
@@ -226,7 +241,6 @@ document.addEventListener("change",e=>{
     case "selProj": S._selProj=el.value; S._selTask=""; render(); break;
     case "selTask": S._selTask=el.value; break;
     case "punchOdooToggle": setPunchOdooHidden(emp,el.dataset.code,!el.checked); manageOdooProjects("manage",el.dataset.code); break;
-    case "recentTransfer": if(el.value) useRecentPunchTransfer(el.value); break;
     case "xProj": S._xProj=el.value; S._xTask=null; render(); break;
     case "xTask": S._xTask=el.value; break;
     case "tf": S.period=+el.value; UI.submitTried=false; render(); break;
@@ -269,6 +283,20 @@ document.addEventListener("keydown",e=>{
   }
   if(!UI.punchOdooOpen&&e.target.id==="punchOdooProjectTrigger"&&e.key==="ArrowDown"){
     e.preventDefault(); UI.punchOdooOpen=true; UI.punchOdooQuery=""; render(); setTimeout(()=>document.getElementById("punchOdooSearch")?.focus(),0); return;
+  }
+  if(!UI.xferOpen&&e.target.id==="xferTrigger"&&(e.key==="ArrowDown"||e.key==="ArrowUp")){
+    e.preventDefault(); UI.xferOpen=true; render(); setTimeout(()=>focusXferOption(e.key==="ArrowUp"?"last":""),0); return;
+  }
+  if(UI.xferOpen&&(e.key==="Escape"||e.key==="Tab")){
+    if(e.key==="Escape") e.preventDefault();
+    closeXferMenu(e.key==="Escape"); return;
+  }
+  if(UI.xferOpen&&["ArrowDown","ArrowUp","Home","End"].includes(e.key)){
+    const options=[...document.querySelectorAll("#xferMenu .xfer-option")], index=options.indexOf(document.activeElement);
+    if(options.length){ e.preventDefault();
+      const to=e.key==="Home"?0:e.key==="End"?options.length-1:e.key==="ArrowDown"?Math.min(index+1,options.length-1):index<0?options.length-1:Math.max(index-1,0);
+      options[to].focus(); }
+    return;
   }
   if(UI.punchOdooOpen&&e.key==="Escape"){
     e.preventDefault(); UI.punchOdooOpen=false; UI.punchOdooQuery="";

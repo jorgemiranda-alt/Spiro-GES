@@ -179,6 +179,45 @@ function punchOdooProjectPicker(codes,selected){
     ${UI.punchOdooOpen?`<div class="punch-project-menu" id="punchOdooProjectMenu"><input type="search" id="punchOdooSearch" class="input punch-project-search" data-act="punchOdooSearch" aria-label="Search active Odoo projects" placeholder="Search projects" autocomplete="off" value="${esc(UI.punchOdooQuery)}"><div class="punch-odoo-options" id="punchOdooOptions" role="listbox" aria-label="Active Odoo projects">${punchOdooProjectOptions(codes,selected,UI.punchOdooQuery)}</div><div class="punch-project-manage"><button type="button" class="linkish" data-act="manageOdooProjects">${icon("gear",16)}<span>Manage Odoo Project</span></button></div></div>`:""}
     </div></div>`;
 }
+/* Punch transfer picker: shows the transfer in effect (or staged for the next Punch In) and lets the employee
+   switch to the home transfer or a recent one. Replaces the former native select. */
+const laborKey=l=>[l&&l.project||"",l&&l.task||"",l&&l.tc||"",l&&l.func||""].join("|");
+function laborParts(l){
+  const cat=l&&LABOR.opts.proj.find(x=>x.v===l.project);
+  return {title:[cat?cat.l:(l&&l.project)||"",laborTaskName(l&&l.task)].filter(Boolean).join(" · ")||"—",detail:[l&&l.tc,l&&l.func].filter(Boolean).join(" · ")};
+}
+function punchTransferOption(id,labor,on,meta){
+  const p=laborParts(labor);
+  return `<button type="button" class="xfer-option ${on?"is-selected":""}" role="option" aria-selected="${on?"true":"false"}" data-act="xferPick" data-id="${esc(id)}" tabindex="-1"><span class="xfer-option-check" aria-hidden="true">${on?icon("check",15):""}</span><b class="xfer-option-title">${esc(p.title)}</b>${meta?`<span class="xfer-option-meta">${esc(meta)}</span>`:""}${p.detail?`<small class="xfer-option-detail">${esc(p.detail)}</small>`:""}</button>`;
+}
+function punchTransferPicker(emp,L,pending,recentTransfers){
+  const home=laborDefaults(emp)||{}, homeKey=laborKey(home);
+  const current=L.st==="out"?(pending||home):(L.labor||home), curKey=laborKey(current), isHome=curKey===homeKey;
+  const onBreak=L.st==="brk", flash=UI.xferFlash; UI.xferFlash=false;
+  const open=UI.xferOpen&&!onBreak;
+  let status=t("xferHome"), tone="home";
+  if(!isHome&&L.st==="out"){ status=t("xferNextPunch"); tone="next"; }
+  else if(!isHome){ const from=[...dayPunches(emp,todayStr())].reverse().find(p=>(p.type==="XFER"||p.type==="IN")&&laborKey(p.labor)===curKey); status=from?t("xferSince").replace("{t}",fmtClock(tsTime(from.t))):t("xferCurrent"); tone="live"; }
+  const parts=laborParts(current);
+  const recents=recentTransfers.filter(p=>laborKey(p.labor)!==homeKey);
+  const showCurrent=!isHome&&!recents.some(p=>laborKey(p.labor)===curKey);
+  const group=(id,label,body)=>`<div class="xfer-group" role="group" aria-labelledby="${id}"><div class="xfer-group-label" id="${id}" role="presentation">${esc(label)}</div>${body}</div>`;
+  const menu=open?`<div class="xfer-menu" id="xferMenu" role="listbox" aria-label="${esc(t("transfer"))}">
+      ${showCurrent?group("xferGroupCurrent",t("xferCurrent"),punchTransferOption("current",current,true,"")):""}
+      ${group("xferGroupHome",t("xferHomeGroup"),punchTransferOption("home",home,isHome,""))}
+      ${group("xferGroupRecent",t("recentTransfers"),recents.map(p=>punchTransferOption(p.id,p.labor,laborKey(p.labor)===curKey,fmtDay(tsDate(p.t)))).join("")||`<p class="xfer-empty">${esc(t("noRecentTransfers"))}</p>`)}
+    </div>`:"";
+  return `<div class="xfer-picker ${open?"is-open":""}">
+      <button type="button" id="xferTrigger" class="xfer-trigger ${flash?"is-updated":""}" data-act="xferToggle" aria-haspopup="listbox" aria-expanded="${open?"true":"false"}" ${open?`aria-controls="xferMenu"`:""} ${onBreak?`aria-describedby="xferBreakNote" disabled`:""}>
+        <span class="xfer-trigger-head"><span class="xfer-trigger-label">${esc(t("transfer"))}</span><span class="xfer-status is-${tone}">${esc(status)}</span></span>
+        <span class="xfer-trigger-title">${esc(parts.title)}</span>
+        ${parts.detail?`<span class="xfer-trigger-detail">${esc(parts.detail)}</span>`:""}
+        <span class="xfer-trigger-chevron" aria-hidden="true">${icon("down",18)}</span>
+      </button>
+      ${menu}
+      ${onBreak?`<p class="xfer-note" id="xferBreakNote">${esc(t("transferAfterBreak"))}</p>`:""}
+    </div>`;
+}
 function viewPunch(){
   const emp=S.persona, L=liveState(emp), A=assigned(emp).filter(c=>!isPunchOdooHidden(emp,c));
   const pending=(S.pendingPunchTransfers||{})[emp]||null;
@@ -203,14 +242,6 @@ function viewPunch(){
   const last=recent[0];
   const punchAction=L.st==="out"?"punchIn":"punchOut";
   const transferDisabled=L.st==="brk";
-  const noRecentTransfers=recentTransfers.length===0;
-  const homeTransfer=laborDefaults(emp)||{};
-  const currentTransfer=L.st==="out"?(pending||homeTransfer):(L.labor||homeTransfer);
-  const sameAsHome=["project","task","tc","func"].every(k=>(currentTransfer[k]||"")===(homeTransfer[k]||""));
-  const curCat=LABOR.opts.proj.find(x=>x.v===currentTransfer.project);
-  const curDesc=[curCat?curCat.l:currentTransfer.project,laborTaskName(currentTransfer.task),currentTransfer.tc,currentTransfer.func].filter(Boolean).join(" · ");
-  const currentLabel=sameAsHome?(curDesc||"—"):`Current: ${curDesc||"—"}`;
-  const recentTransferHint=transferDisabled?t("transferAfterBreak"):noRecentTransfers?t("noRecentTransfers"):"Choose a recent transfer to use now or with your next punch.";
   return `
   ${S.settings.simDuplicatePunchError?`<div class="banner err">${icon("x")}<div><b>UKG duplicate-punch error simulation is armed.</b> The next Punch In or Punch Out will display the error returned by UKG. ${uj("PU-08")}</div></div>`:""}
   <div class="punch-screen">
@@ -218,13 +249,7 @@ function viewPunch(){
       <div class="panel-head"><h2>${esc(t("punch"))}${uj("PU-01,PU-02,PU-06")}</h2></div>
       <div class="panel-body punch-tile-body">
         <div class="punch-last"><span>${esc(t("lastPunch"))}: <strong>${last?`${esc(fmtDay(tsDate(last.t)))} ${esc(fmtClock(tsTime(last.t)))}`:"—"}</strong></span><button class="icon-btn punch-info" type="button" title="The date and time of your most recent punch." aria-label="${esc(t("lastPunch"))} information">${icon("info",19)}</button></div>
-        <div class="punch-transfer-row">
-          <select id="recentTransfer" class="select punch-recent-transfer" data-act="recentTransfer" ${transferDisabled||noRecentTransfers?"disabled":""} ${transferDisabled?`title="${esc(t("transferAfterBreak"))}"`:noRecentTransfers?`title="${esc(t("noRecentTransfers"))}"`:""} aria-label="${esc(t("recentTransfers"))}">
-            <option value="">${esc(currentLabel)}</option>
-            ${recentTransfers.map(p=>{const cat=LABOR.opts.proj.find(x=>x.v===p.labor.project), desc=[cat?cat.l:p.labor.project,laborTaskName(p.labor.task),p.labor.tc,p.labor.func].filter(Boolean).join(" · ")||t("transfer");return `<option value="${esc(p.id)}">${esc(desc)} · ${esc(fmtDay(tsDate(p.t)))}</option>`;}).join("")}
-          </select>
-          <button class="icon-btn punch-info" type="button" title="${esc(recentTransferHint)}" aria-label="${esc(t("recentTransfers"))} information">${icon("info",19)}</button>
-        </div>
+        ${punchTransferPicker(emp,L,pending,recentTransfers)}
         <button class="punch-add-transfer" data-act="startXfer" data-hl="punch-transfer" ${transferDisabled?`disabled title="${esc(t("transferAfterBreak"))}"`:""}>${icon("plus",20)}<span>${esc(t("addTransfer"))}</span></button>
         
         ${L.st==="out"?`<div class="punch-odoo-section"><div class="two punch-optional-fields">${projectPicker}<label class="field"><span>${esc(t("odooTask"))} <small>${esc(t("optional"))}</small></span>${taskSel}</label></div>

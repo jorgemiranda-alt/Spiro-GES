@@ -131,23 +131,35 @@ function ntPunchApply(){
   addPunch(emp,"XFER",L.proj,L.task,"Punch",null,{project:lc.proj,task:lc.task,tc:lc.tc||"",func:lc.func||""});
   ntClose(); clearPunchNotice(); render();
 }
-function useRecentPunchTransfer(id){
-  const emp=S.persona, L=liveState(emp), source=S.punches[emp].find(p=>p.id===id&&p.type==="XFER");
-  if(!source) return;
+/* Applies a transfer chosen in the Punch transfer picker: "home", "current", or the id of a recent transfer punch.
+   Out: stages it for the next Punch In (home clears the staged one). In: records a transfer punch now. */
+function pickPunchTransfer(id){
+  const emp=S.persona, L=liveState(emp), d=laborDefaults(emp);
+  const pending=(S.pendingPunchTransfers||{})[emp]||null;
+  UI.xferOpen=false;
   if(L.st==="brk"){ showPunchNotice("error",t("transferAfterBreak")); return; }
-  const d=laborDefaults(emp), transfer={project:source.labor?.project||"",task:source.labor?.task||"",tc:source.labor?.tc??d.tc??"",func:source.labor?.func??d.func??""};
-  const cat=LABOR.opts.proj.find(x=>x.v===transfer.project);
-  if(!cat||cat.taskReq&&!transfer.task||transfer.task&&!cat.tasks.includes(transfer.task)){ showPunchNotice("error","This saved transfer has incomplete labor categories. Add a transfer and choose the current categories."); return; }
-  if(L.st==="out"){
-    S.pendingPunchTransfers=S.pendingPunchTransfers||{}; S.pendingPunchTransfers[emp]=transfer;
-    persist(); showPunchNotice("success","Your next Punch In will use this transfer."); return;
+  const focusTrigger=()=>setTimeout(()=>document.getElementById("xferTrigger")?.focus(),0);
+  let transfer;
+  if(id==="home") transfer={project:d.project||"",task:d.task||"",tc:d.tc||"",func:d.func||""};
+  else if(id==="current"){ render(); focusTrigger(); return; }
+  else {
+    const source=S.punches[emp].find(p=>p.id===id&&p.type==="XFER");
+    if(!source){ render(); focusTrigger(); return; }
+    transfer={project:source.labor?.project||"",task:source.labor?.task||"",tc:source.labor?.tc??d.tc??"",func:source.labor?.func??d.func??""};
+    const cat=LABOR.opts.proj.find(x=>x.v===transfer.project);
+    if(!cat||cat.taskReq&&!transfer.task||transfer.task&&!cat.tasks.includes(transfer.task)){ showPunchNotice("error","This saved transfer has incomplete labor categories. Add a transfer and choose the current categories."); focusTrigger(); return; }
   }
-  const current=L.labor||d;
-  if((current.project||"")===(transfer.project||"")&&(current.task||"")===(transfer.task||"")&&(current.tc||"")===(transfer.tc||"")&&(current.func||"")===(transfer.func||"")){
-    showPunchNotice("error","You are already using this transfer."); return;
+  const current=L.st==="out"?(pending||d):(L.labor||d);
+  if(laborKey(current)===laborKey(transfer)){ render(); focusTrigger(); return; }
+  UI.xferFlash=true;
+  if(L.st==="out"){
+    S.pendingPunchTransfers=S.pendingPunchTransfers||{};
+    const toHome=laborKey(transfer)===laborKey(d);
+    if(toHome) delete S.pendingPunchTransfers[emp]; else S.pendingPunchTransfers[emp]=transfer;
+    persist(); showPunchNotice("success",t(toHome?"xferNextHome":"xferNextThis")); focusTrigger(); return;
   }
   addPunch(emp,"XFER",L.proj,L.task,"Punch",null,transfer);
-  clearPunchNotice(); render();
+  clearPunchNotice(); render(); focusTrigger();
 }
 /* Click router for the drawer; returns true when the action belonged to it. */
 function ntAction(a,el){
