@@ -10,6 +10,10 @@ document.addEventListener("keydown",e=>{
   $("#layer").innerHTML=shotViewerHtml(box.dataset.jid, box.dataset.group, to);
   $("#layer .shot-lightbox .btn")?.focus();
 });
+/* Enter or Space toggles a journey group header, as a click does. */
+document.addEventListener("keydown",e=>{
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("tr.jgroup")){ e.preventDefault(); e.target.click(); }
+});
 document.addEventListener("click",e=>{
   if(UI.punchOdooOpen&&!e.target.closest(".punch-project-picker")){
     UI.punchOdooOpen=false; UI.punchOdooQuery="";
@@ -157,6 +161,7 @@ document.addEventListener("click",e=>{
         case "shotOpen": case "shotNav": { $("#layer").innerHTML=shotViewerHtml(el.dataset.jid, el.dataset.group, +el.dataset.index); $("#layer .shot-lightbox .btn")?.focus(); break; }
     case "shotKeep": break;
     case "shotClose": $("#layer").innerHTML=""; break;
+    case "epicToggle": { const C=UI.jCollapsed||(UI.jCollapsed=new Set()), ep=el.dataset.epic; C.has(ep)?C.delete(ep):C.add(ep); render(); break; }
     case "jRun": { e.stopPropagation(); const j=JOURNEYS.find(x=>x.id===el.dataset.id); const [p,v,hl]=j.demo; S.persona=p; S.period=J_PERIOD[j.id]??0; if(j.id==="PA-06"){} if(v==="kiosk") kioskReset(); go(v); flash(J_FOCUS[j.id]||hl); toast(`${j.id} · ${j.name}`); break; }
     case "reset": try{localStorage.removeItem(STORE_KEY);}catch(_){} S=seed(); S.seedWeek=periodKey(0); UI.drawer=false; $("#layer").innerHTML=""; kioskReset(); render(); toast("Demo data reset.","success"); break;
   }
@@ -230,7 +235,6 @@ document.addEventListener("change",e=>{
     case "setTags": S.settings.tags=el.checked; document.body.classList.toggle("hide-tags",!el.checked); persist(); break;
     case "setHideViewAs": S.settings.hideViewAs=el.checked; document.body.classList.toggle("hide-view-as",el.checked); persist(); break;
     case "setPunchError": S.settings.simDuplicatePunchError=el.checked; persist(); render(); break;
-    case "jUse": UI.jFilter.use=el.value; UI.jFilter.epic=""; UI.jFilter.spec=""; UI.jFilter.ev=""; render(); break;
     case "jEpic": UI.jFilter.epic=el.value; render(); break;
     case "jSpec": UI.jFilter.spec=el.value; render(); break;
     case "jEv": UI.jFilter.ev=el.value; render(); break;
