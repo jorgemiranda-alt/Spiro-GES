@@ -485,13 +485,21 @@ function shotViewerHtml(jid, group, index){
   return `<div class="shot-lightbox" role="dialog" aria-modal="true" aria-label="${esc(x.caption)} screenshot" data-jid="${esc(jid)}" data-group="${group}" data-index="${i}" data-act="shotClose" style="position:fixed;inset:0;z-index:60;background:rgba(10,12,14,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:56px 72px 16px;box-sizing:border-box;cursor:zoom-out"><button type="button" class="btn" data-act="shotClose" style="position:absolute;top:16px;right:16px" aria-label="Close screenshot">Close</button>${i>0?arrow(i-1,"prev"):""}${i<list.length-1?arrow(i+1,"next"):""}<img src="${esc(x.src)}" alt="${esc(x.alt)}" data-act="shotKeep" style="display:block;max-width:100%;max-height:calc(100vh - 130px);width:auto;height:auto;border-radius:8px;background:#fff;cursor:default"><p style="margin:0;color:#fff;font-size:14px;text-align:center">${esc(x.caption)} · ${i+1} of ${list.length} · prototype</p></div>`;
 }
 
+const USE_CASES=[
+  {id:"hourly",label:"Hourly employee: punch, Odoo projects, transfers, breaks, My Timecard (§5.1)",epics:["E1","E2"],scope:"Scope: hourly employee Punch, breaks, Odoo projects, transfers, and My Timecard (spec §5.1). Manager review (§5.4) is not on this screen until it is drafted."},
+  {id:"project",label:"Project hours, salaried (§5.2)",epics:["E3"],scope:"Scope: salaried employee weekly project hours (spec §5.2). Project-time approval by managers (§5.4) is not included until it is drafted."},
+  {id:"timeoff",label:"Time Off (§5.3)",epics:["E4"],scope:"Scope: Time Off requests, and the manager review of requests for employees they manage (spec §5.3)."},
+  {id:"timeclock",label:"Timeclock, warehouse kiosk (§5.5)",epics:["E5"],scope:"Scope: warehouse kiosk punch and recent-punch flows (spec §5.5). The job-barcode step is out of scope; the main prototype still shows it until the kiosk branch is merged."}
+];
 /* Journeys */
 function viewJourneys(){
-  const F=UI.jFilter, q=F.q.toLowerCase();
-  const list=JOURNEYS.filter(j=>(!F.epic||j.epic===F.epic)&&(!F.ev||j.ev===F.ev)&&(!F.spec||j.specStatus===F.spec)&&(!q||[j.id,j.name,j.actor,j.story,j.specStatus,j.specRef,j.ev].join(" ").toLowerCase().includes(q)));
+  const F=UI.jFilter, q=F.q.toLowerCase(), UC=USE_CASES.find(u=>u.id===(F.use||"hourly"))||USE_CASES[0];
+  const list=JOURNEYS.filter(j=>UC.epics.includes(j.epic)&&(!F.epic||j.epic===F.epic)&&(!F.ev||j.ev===F.ev)&&(!F.spec||j.specStatus===F.spec)&&(!q||[j.id,j.name,j.actor,j.story,j.specStatus,j.specRef,j.ev].join(" ").toLowerCase().includes(q)));
   const evs=[...new Set(JOURNEYS.map(j=>j.ev))];
   const specs=["Confirmed","Prototype","Proposed","Open decision","Out of scope"].filter(s=>JOURNEYS.some(j=>j.specStatus===s));
-  const cnt=f=>JOURNEYS.filter(f).length;
+  const inUC=JOURNEYS.filter(j=>UC.epics.includes(j.epic)), ucIds=inUC.map(j=>j.id);
+  const qFor=x=>{ const refs=(x[5].match(/[A-Z]{2}-\d\d/g)||[]); return !refs.length||refs.some(r=>ucIds.includes(r)); };
+  const cnt=f=>inUC.filter(f).length;
   const evCls=e=>e.startsWith("Confirmed - Spiro")||e.startsWith("Confirmed - UI/UX")||e.startsWith("Confirmed - picker")?"ok":e.startsWith("Confirmed - UKG")||e.startsWith("Confirmed - current demo")||e.startsWith("Not documented")||e.startsWith("Out of scope")?"info":"warn";
   const specCls=s=>s==="Confirmed"?"ok":(s==="Prototype"||s==="Proposed")?"info":s==="Open decision"?"warn":"";
   let body="", lastEpic="";
@@ -509,11 +517,11 @@ function viewJourneys(){
       ${(j.shots||[]).length?`<div style="grid-column:1/-1"><h4>Screenshots</h4><p class="sub">Select a screenshot to enlarge it. Use the arrows or the left and right keys to move through a flow.</p>${["desktop","mobile"].map(g=>{const list=j.shots.filter(x=>shotGroup(x)===g);return list.length?`<div style="margin-top:10px"><div class="sub" style="margin-bottom:6px">${g==="desktop"?"Desktop":"Mobile"} · ${list.length}</div><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">${list.map((x,i)=>`<figure style="margin:0"><button type="button" data-act="shotOpen" data-jid="${esc(j.id)}" data-group="${g}" data-index="${i}" aria-label="Enlarge ${esc(x.caption)} screenshot" style="display:block;padding:0;border:1px solid rgba(0,0,0,.12);border-radius:6px;background:none;cursor:zoom-in;overflow:hidden;line-height:0"><img src="${esc(x.src)}" alt="" loading="lazy" style="display:block;height:100px;width:${g==="mobile"?"64px":"160px"};object-fit:cover;object-position:top left"></button><figcaption class="sub" style="margin-top:4px">${esc(shotLabel(x))}</figcaption></figure>`).join("")}</div></div>`:""}).join("")}</div>`:""}<div><h4>Evidence</h4><p>${esc(j.ev)} · ${esc(j.src)}</p></div><div><h4>Demo path</h4><p>${esc(j.demo[3])}</p></div></div></td></tr>`;
   });
   return `<section class="panel j-summary"><h2>Specification coverage</h2><dl class="j-summary-list">
-    <div><dt>Register entries</dt><dd>${JOURNEYS.length}</dd></div><div><dt>Confirmed</dt><dd>${cnt(j=>j.specStatus==="Confirmed")}</dd></div><div><dt>Prototype</dt><dd>${cnt(j=>j.specStatus==="Prototype")}</dd></div><div><dt>Proposed</dt><dd>${cnt(j=>j.specStatus==="Proposed")}</dd></div><div><dt>Open decisions</dt><dd>${cnt(j=>j.specStatus==="Open decision")}</dd></div><div><dt>Out of scope</dt><dd>${cnt(j=>j.specStatus==="Out of scope")}</dd></div>
-  </dl><p class="sub">Scope: hourly employee Punch, breaks, Odoo projects, transfers, and My Timecard (Global Time Entry specification §5.1). Kiosk, project-hours, Manager, and Time Off journeys are not on this screen.</p><p class="sub">Prototype coverage is tracked separately on each journey.</p></section>
+    <div><dt>Register entries</dt><dd>${inUC.length}</dd></div><div><dt>Confirmed</dt><dd>${cnt(j=>j.specStatus==="Confirmed")}</dd></div><div><dt>Prototype</dt><dd>${cnt(j=>j.specStatus==="Prototype")}</dd></div><div><dt>Proposed</dt><dd>${cnt(j=>j.specStatus==="Proposed")}</dd></div><div><dt>Open decisions</dt><dd>${cnt(j=>j.specStatus==="Open decision")}</dd></div><div><dt>Out of scope</dt><dd>${cnt(j=>j.specStatus==="Out of scope")}</dd></div>
+  </dl><p class="sub">${esc(UC.scope)}</p><p class="sub">Prototype coverage is tracked separately on each journey.</p></section>
   <section class="panel">
-    <div class="panel-head"><h2>Hourly employee journeys</h2>
-      <select class="select" id="jEpic" data-act="jEpic" aria-label="Epic"><option value="">All epics</option>${Object.entries(EPICS).map(([k,v])=>`<option value="${k}" ${F.epic===k?"selected":""}>${k} · ${esc(v)}</option>`).join("")}</select>
+    <div class="panel-head"><h2>User journeys</h2><select class="select" id="jUse" data-act="jUse" aria-label="Use case">${USE_CASES.map(u=>`<option value="${u.id}" ${u.id===UC.id?"selected":""}>${esc(u.label)}</option>`).join("")}</select>
+      <select class="select" id="jEpic" data-act="jEpic" aria-label="Epic"><option value="">All epics</option>${Object.entries(EPICS).filter(([k])=>UC.epics.includes(k)).map(([k,v])=>`<option value="${k}" ${F.epic===k?"selected":""}>${k} · ${esc(v)}</option>`).join("")}</select>
       <select class="select" id="jSpec" data-act="jSpec" aria-label="Specification coverage"><option value="">All specification statuses</option>${specs.map(s=>`<option ${F.spec===s?"selected":""}>${esc(s)}</option>`).join("")}</select>
       <select class="select" id="jEv" data-act="jEv" aria-label="Evidence"><option value="">All evidence</option>${evs.map(e=>`<option ${F.ev===e?"selected":""}>${esc(e)}</option>`).join("")}</select>
       <input class="input" id="jQ" data-act="jQ" placeholder="Search journeys" value="${esc(F.q)}" aria-label="Search journeys">
@@ -523,5 +531,5 @@ function viewJourneys(){
     <div class="panel-body scroll-x"><table class="jt" style="min-width:1060px"><thead><tr><th>ID</th><th>Journey</th><th>Specification</th><th>Evidence</th><th>Register priority</th><th>Prototype</th><th>Open Q</th><th></th></tr></thead><tbody>${body||`<tr><td colspan="8" class="sub">No journeys match.</td></tr>`}</tbody></table></div>
   </section>
   <section class="panel"><div class="panel-head"><h2>Open questions for Spiro</h2><span class="sub">Open product, policy, and implementation decisions referenced by these journeys.</span></div>
-    <div class="panel-body scroll-x"><table class="plain" style="min-width:700px"><thead><tr><th>ID</th><th>Area</th><th>Question</th><th>Journeys</th><th>Priority</th></tr></thead><tbody>${QUESTIONS.map(x=>`<tr><td class="mono">${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}<br><span class="sub">${esc(x[3])}</span></td><td class="mono">${esc(x[5])}</td><td>${esc(x[4])}</td></tr>`).join("")}</tbody></table></div></section>`;
+    <div class="panel-body scroll-x"><table class="plain" style="min-width:700px"><thead><tr><th>ID</th><th>Area</th><th>Question</th><th>Journeys</th><th>Priority</th></tr></thead><tbody>${QUESTIONS.filter(qFor).map(x=>`<tr><td class="mono">${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}<br><span class="sub">${esc(x[3])}</span></td><td class="mono">${esc(x[5])}</td><td>${esc(x[4])}</td></tr>`).join("")}</tbody></table></div></section>`;
 }

@@ -230,6 +230,7 @@ document.addEventListener("change",e=>{
     case "setTags": S.settings.tags=el.checked; document.body.classList.toggle("hide-tags",!el.checked); persist(); break;
     case "setHideViewAs": S.settings.hideViewAs=el.checked; document.body.classList.toggle("hide-view-as",el.checked); persist(); break;
     case "setPunchError": S.settings.simDuplicatePunchError=el.checked; persist(); render(); break;
+    case "jUse": UI.jFilter.use=el.value; UI.jFilter.epic=""; UI.jFilter.spec=""; UI.jFilter.ev=""; render(); break;
     case "jEpic": UI.jFilter.epic=el.value; render(); break;
     case "jSpec": UI.jFilter.spec=el.value; render(); break;
     case "jEv": UI.jFilter.ev=el.value; render(); break;
