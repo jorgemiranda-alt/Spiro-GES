@@ -59,7 +59,7 @@ export function validate(s){
   const scope=new Set(['Current','Draft','Future','Out of scope']);
   const coverage=new Set(['Covered','Partial','Prototype differs','Not prototyped']);
   const people=new Set(['ava','maya','zofia','lukas','oliver']);
-  const views=new Set(['home','punch','timecard','grid','approvals','kiosk','timeoff']);
+  const views=new Set(['home','punch','timecard','grid','approvals','kiosk','timeoff','projects']);
   for(const j of s.journeys){
     if(!s.epics[j.epic]||!status.has(j.specStatus)||!scope.has(j.scope)||!coverage.has(j.cov))throw new Error(`${j.id}: invalid epic/status/scope/coverage`);
     for(const k of ['name','actor','story','flow','rules','specRef','contentRevision'])if(!String(j[k]||'').trim())throw new Error(`${j.id}: missing ${k}`);

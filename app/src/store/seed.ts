@@ -1,7 +1,7 @@
 import { LABOR } from "@/data/reference-data"
 import { timeOffSeed } from "@/data/time-off"
 import { periodDays, periodKey, todayStr } from "@/lib/dates"
-import type { Approval, DemoState, GridRow, Punch, PunchType } from "./types"
+import type { Approval, DemoState, GridRow, InboxItem, Punch, PunchType } from "./types"
 
 export const STORE_KEY = "spiro-demo-react-v1"
 
@@ -22,7 +22,7 @@ export function seed(): DemoState {
     punches: { ava: [], lukas: [] }, comments: { ava: {}, lukas: {} }, tcAppr: {}, hidden: {},
     grid: { zofia: {}, maya: {} }, approvals: [], txns: [], audit: [],
     pendingPunchTransfers: {}, odooAssignments: {}, punchOdooHidden: {},
-    modern: {}, modernStatus: {}, timeOff: timeOffSeed(),
+    modern: {}, modernStatus: {}, timeOff: timeOffSeed(), inbox: seedInbox(), notifyPrefs: {},
   }
   const prev = periodDays(-1), cur = periodDays(0), today = todayStr()
 
@@ -76,13 +76,28 @@ export function seed(): DemoState {
   return st
 }
 
+/** A few recent notifications so each persona's inbox is not empty on first open. */
+export function seedInbox(): InboxItem[] {
+  const prev = periodDays(-1)
+  const item = (emp: string, kind: InboxItem["kind"], key: string, vars: InboxItem["vars"], at: string, read = false): InboxItem =>
+    ({ id: rid("n"), emp, kind, key, vars, at, read, emailed: false })
+  return [
+    item("ava", "project", "ntProjectHot", { name: "Grace Kim", pct: 102, project: "Global Brand Activation" }, `${todayStr()} 08:15`),
+    item("ava", "timeoff", "ntTimeOffApproved", { type: "sick", start: prev[1], end: prev[1] }, `${prev[2]} 09:40`, true),
+    item("maya", "project", "ntProjectHot", { name: "Maya Chen", pct: 74, project: "Retail Experience Refresh" }, `${todayStr()} 07:50`),
+    item("zofia", "project", "ntProjectHot", { name: "Zofia Kowalska", pct: 87, project: "Warsaw Retail Event" }, `${prev[4]} 16:10`),
+    item("oliver", "project", "ntProjectHot", { name: "Priya Shah", pct: 91, project: "Global Brand Activation" }, `${todayStr()} 08:15`),
+    item("lukas", "project", "ntProjectHot", { name: "Lukas Weber", pct: 83, project: "Berlin Expo Build" }, `${prev[3]} 15:00`, true),
+  ]
+}
+
 /** Saved state is kept only within the week it was seeded, so relative demo dates stay meaningful. */
 export function load(): DemoState {
   try {
     const raw = localStorage.getItem(STORE_KEY)
     if (raw) {
       const s = JSON.parse(raw) as DemoState
-      if (s && s.v === 4 && s.seedWeek === periodKey(0)) return s
+      if (s && s.v === 4 && s.seedWeek === periodKey(0)) { s.inbox ||= seedInbox(); return s }
     }
   } catch {
     /* Private mode or corrupt data: fall back to a fresh seed. */

@@ -8,8 +8,8 @@ const copy=()=>structuredClone(snapshot);
 
 test('reviewed inventory validates, with separate journey and requirement IDs',()=>{
   validate(snapshot);
-  assert.equal(snapshot.journeys.length,39);
-  assert.equal(snapshot.questions.length,18);
+  assert.equal(snapshot.journeys.length,46);
+  assert.equal(snapshot.questions.length,16);
   assert.equal(snapshot.requirements.length,12);
   assert.ok(snapshot.requirements.every(r=>r.id.startsWith('REQ-TO-')));
 });
@@ -24,7 +24,7 @@ test('read-only timecard baseline and safe DOM IDs are enforced',()=>{
 });
 test('all registered journeys reach the specification, including a newly added journey',()=>{
   const s=copy(),j=structuredClone(s.journeys.find(j=>j.id==='TO-01'));
-  j.id='TO-08';j.requirementIds=[];s.journeys.push(j);
+  j.id='TO-99';j.requirementIds=[];s.journeys.push(j);
   const text=renderJourneySection(s);
   for(const j of s.journeys)assert.equal(text.split(`##### ${j.id} —`).length-1,1,j.id);
   assert.match(text,/5\.9 Additional journeys/);

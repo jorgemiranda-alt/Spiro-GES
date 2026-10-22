@@ -1,9 +1,11 @@
 /* Time Off rules and session UI state, ported from public/js/time-off.js.
    Configuration, balances and requests are synthetic sample data. */
+import type { Draft } from "immer"
 import { create } from "zustand"
 import { TO_DURATION, TO_SAMPLE, type TimeOffType } from "@/data/time-off"
 import { addDays, locale, nowTs, parseYmd, todayStr, ymd } from "@/lib/dates"
 import { toText } from "@/lib/i18n"
+import { notifyPerson } from "@/lib/notifications"
 import { useDemo } from "@/store/store"
 import type { DemoState, TimeOffRequest } from "@/store/types"
 
@@ -103,15 +105,26 @@ export function fmtWhen(stamp: string, lang: string) {
   const d = new Date(stamp.replace(" ", "T"))
   return Number.isNaN(d.getTime()) ? stamp : d.toLocaleString(locale(lang), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
 }
-export function quantity(r: { duration: string; start: string; end: string; hours: number | string | null }, lang: string) {
-  const l = locale(lang)
-  if (r.duration === "Hours") return `${Number(r.hours || 0).toLocaleString(l)} ${toText(lang, "hours").toLowerCase()}`
-  if (!r.start || !r.end || r.end < r.start) return toText(lang, TO_DURATION[r.duration])
+type Span = { duration: string; start: string; end: string; hours: number | string | null }
+
+/** Working days a request covers, counting half days as 0.5. */
+function workDays(r: Span) {
+  if (!r.start || !r.end || r.end < r.start) return 0
   const start = parseYmd(r.start)
   const total = Math.max(0, Math.round((parseYmd(r.end).getTime() - start.getTime()) / 86400000) + 1)
   let days = Math.floor(total / 7) * TO_SAMPLE.workdays.length
   for (let i = 0; i < total % 7; i++) if (TO_SAMPLE.workdays.includes(addDays(start, i).getDay())) days++
-  const amount = days * (r.duration === "Full Day" ? 1 : 0.5)
+  return days * (r.duration === "Full Day" ? 1 : 0.5)
+}
+
+/** Hours a request draws from a balance, assuming an 8-hour working day. */
+export const requestHours = (r: Span) => (r.duration === "Hours" ? Number(r.hours || 0) : workDays(r) * 8)
+
+export function quantity(r: Span, lang: string) {
+  const l = locale(lang)
+  if (r.duration === "Hours") return `${Number(r.hours || 0).toLocaleString(l)} ${toText(lang, "hours").toLowerCase()}`
+  if (!r.start || !r.end || r.end < r.start) return toText(lang, TO_DURATION[r.duration])
+  const amount = workDays(r)
   if (!amount) return toText(lang, "amountUnavailable")
   return `${amount.toLocaleString(l)} ${toText(lang, amount === 1 ? "day" : "days")}`
 }
@@ -152,8 +165,11 @@ export const stampNow = () => nowTs().replace(" ", "T") + ":00"
 
 /* ---------- state changes ---------- */
 
-const notifyDraft = (s: { timeOff: DemoState["timeOff"] }, r: TimeOffRequest) => {
+const notifyDraft = (s: Draft<DemoState>, r: TimeOffRequest) => {
   s.timeOff.notifications.unshift({ id: r.id, emp: r.emp, status: r.status, reason: r.history[r.history.length - 1]?.reason || "", at: r.updated })
+  // New requests go to the manager; decisions go back to the employee.
+  const to = r.status === "Submitted" ? r.manager : r.emp
+  if (to) notifyPerson(s, to, "timeoff", `ntTimeOff${r.status}`, { who: r.emp, type: r.type, start: r.start, end: r.end })
 }
 export { notifyDraft as notify }
 

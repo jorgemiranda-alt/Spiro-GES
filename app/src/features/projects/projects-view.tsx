@@ -9,6 +9,7 @@ import { StatusPill, type Tone } from "@/components/app/status"
 import { PROJECTS } from "@/data/reference-data"
 import { levelOf, pctOf, projectPlan, visibleProjects, type Level, type MemberTotals, type PlanTask } from "@/data/project-plans"
 import { locale } from "@/lib/dates"
+import { notifyPerson, prefsFor } from "@/lib/notifications"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
@@ -70,8 +71,13 @@ export default function ProjectsView() {
   const isOpen = (t: PlanTask, i: number) => open[t.id] ?? i === 0
 
   const toggleAlerts = (on: boolean) => {
-    mutate(s => { s.settings.projectAlerts = { ...(s.settings.projectAlerts || {}), [code]: on } })
-    if (on) toast(at("pdAlertsOn", { p: project.name, n: hot.length }), { icon: <BellRing className="size-4" /> })
+    mutate(s => {
+      s.settings.projectAlerts = { ...(s.settings.projectAlerts || {}), [code]: on }
+      // Turning alerts on sends one summary through the viewer's chosen channels.
+      if (on) notifyPerson(s, persona, "project", "ntProjectAlertsOn", { project: project.name, n: hot.length })
+    })
+    // With in-app notifications on, the new inbox item announces itself; otherwise confirm here.
+    if (on && !prefsFor(useDemo.getState().s, persona, "project").app) toast(at("pdAlertsOn", { p: project.name, n: hot.length }), { icon: <BellRing className="size-4" /> })
     else toast(at("pdAlertsOff", { p: project.name }))
   }
 

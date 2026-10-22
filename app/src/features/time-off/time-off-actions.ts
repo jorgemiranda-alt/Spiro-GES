@@ -1,5 +1,6 @@
 /* Time Off actions, ported from toAction and its helpers in public/js/time-off.js. */
 import { toast } from "sonner"
+import { notifyPerson } from "@/lib/notifications"
 import { TO_SAMPLE } from "@/data/time-off"
 import { nowTs, todayStr } from "@/lib/dates"
 import { toText } from "@/lib/i18n"
@@ -177,7 +178,11 @@ export async function submitDraft() {
     history: [{ action: "Submitted", at: created, actor: owner }],
   }
   if (rule) r.autoApproval = { at: new Date(new Date(created).getTime() + rule.delayMilliseconds).toISOString(), rule: rule.name }
-  useDemo.getState().mutate(s => { s.timeOff.requests.unshift(r); s.timeOff.lastUpdated = nowTs() })
+  useDemo.getState().mutate(s => {
+    s.timeOff.requests.unshift(r)
+    s.timeOff.lastUpdated = nowTs()
+    if (r.manager) notifyPerson(s, r.manager, "timeoff", "ntTimeOffSubmitted", { who: owner, type: r.type, start: r.start, end: r.end })
+  })
   if (ui().owner !== owner) return
   patch({ busy: false, confirmed: id, balance: null, screen: "confirmation" })
   if (stillHere()) {

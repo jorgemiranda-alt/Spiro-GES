@@ -142,6 +142,22 @@ export interface TimeOffState {
   requests: TimeOffRequest[]
 }
 
+export type NotifyKind = "timeoff" | "project"
+export interface NotifyChannels { app: boolean; email: boolean }
+
+/** One item in a person's in-app inbox; text is built from key + vars when shown. */
+export interface InboxItem {
+  id: string
+  emp: string
+  kind: NotifyKind
+  key: string
+  vars: Record<string, string | number>
+  at: string
+  read: boolean
+  /** A copy also went out by (simulated) email. */
+  emailed: boolean
+}
+
 export interface DemoState {
   v: 4
   seedWeek: string
@@ -167,4 +183,8 @@ export interface DemoState {
   /** Modern timecard week status: emp → period key → status. */
   modernStatus: Record<string, Record<string, "Draft" | "Submitted">>
   timeOff: TimeOffState
+  /** In-app notifications for every person; missing in states saved before inboxes existed. */
+  inbox?: InboxItem[]
+  /** Notification channels each person chose, per kind. Defaults: in-app on, email off. */
+  notifyPrefs?: Record<string, Partial<Record<NotifyKind, NotifyChannels>>>
 }

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import { useUI } from "@/store/ui"
 import { VIEW_ICONS } from "./common"
+import { NotificationBell, NotificationsPanel, useNotificationAnnouncer } from "./notifications"
 import { ResponsivePanel } from "./responsive-panel"
 
 const PERSONA_IDS = Object.keys(PERSONAS) as PersonaId[]
@@ -123,6 +124,7 @@ function Sidebar() {
       <div className="flex items-center gap-3 px-1">
         <span className="rounded-xl bg-white px-3 py-2"><img src={LOGO_SRC} alt="Spiro" width={84} height={43} className="block h-auto" /></span>
         <span className="text-[13px] leading-tight text-nav-muted">Time &amp;<br />Operations</span>
+        <NotificationBell dark className="ml-auto" />
       </div>
       <nav className="space-y-6" aria-label={t("menu")}>
         <div className="space-y-1">
@@ -168,6 +170,7 @@ function MobileTopBar() {
           <p className="truncate text-[15px] font-semibold">{P.name}</p>
           <p className="truncate text-xs text-muted-foreground">{P.role}</p>
         </div>
+        <NotificationBell />
         <button type="button" onClick={() => openProfile(true)} className="rounded-full p-0.5 outline-offset-2" aria-label={`${t("viewingAs")}: ${P.name}`}>
           <Avatar initials={P.initials} />
         </button>
@@ -245,6 +248,7 @@ function ProfileSheet() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  useNotificationAnnouncer()
   return (
     <div className="flex min-h-dvh">
       <Sidebar />
@@ -256,6 +260,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
       <BottomTabs />
       <ProfileSheet />
+      <NotificationsPanel />
     </div>
   )
 }

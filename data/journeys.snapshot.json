@@ -415,7 +415,7 @@
       ],
       "ev": "Confirmed - user-approved kiosk flow (§5.5.1–5.5.4); production badge lookup and authorization remain open",
       "src": "Global Time Entry UI/UX Specification §5.5.1–5.5.4",
-      "q": "UI-OPEN-01",
+      "q": "",
       "pri": "Should",
       "cov": "Partial",
       "demo": [
@@ -1821,7 +1821,7 @@
       ],
       "ev": "Confirmed - user-approved kiosk flow (§5.5.3); production lookup remains open",
       "src": "Global Time Entry UI/UX Specification §5.5.3",
-      "q": "UI-OPEN-01",
+      "q": "",
       "pri": "Should",
       "cov": "Partial",
       "demo": [
@@ -1870,7 +1870,7 @@
       ],
       "ev": "Confirmed - user-approved kiosk flow (§5.5.4); outage handling remains open",
       "src": "Global Time Entry UI/UX Specification §5.5.4",
-      "q": "UI-OPEN-01",
+      "q": "",
       "pri": "Should",
       "cov": "Partial",
       "demo": [
@@ -1884,6 +1884,344 @@
       "requirementIds": [],
       "scope": "Current",
       "contentRevision": "2026-10-09-r3",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "PD-01",
+      "epic": "E3",
+      "name": "See everyone working on a project I bill to",
+      "actor": "Employee billing to a project; project approver",
+      "population": "All billable employees and their project approvers",
+      "story": "As someone billing time to a project, I want to select it and see everyone working on it with their scoped and actual hours so that the project team shares the same view of progress.",
+      "trigger": "Employee opens Project dashboard",
+      "pre": "Employee is on the project team (Odoo assignment) or is its approver; Odoo budgets and UKG actual hours are available",
+      "flow": "1. Open Project dashboard. 2. Pick a project from the projects I bill to. 3. See budget, actual and remaining hours for the project. 4. On the Team tab, see each person's role, scoped hours, actual hours and progress, with my own row marked.",
+      "alt": "No billable projects -> show an empty state explaining that views appear for billable projects I charge time to.",
+      "rules": "Every billable person on the project can see the project view, not only its manager. This is separate from leadership reporting in Power BI.",
+      "api": "Odoo project assignments and task budgets; UKG actual hours by project [SE-verify]",
+      "ac": [
+        [
+          "I bill time to a project",
+          "I open Project dashboard and select it",
+          "I see every team member with scoped hours, actual hours and progress"
+        ],
+        [
+          "I do not bill to or approve a project",
+          "I open Project dashboard",
+          "that project is not in my list"
+        ]
+      ],
+      "ev": "Stakeholder feedback",
+      "src": "Stakeholder review, project visibility request (Beth); RFP project-team visibility",
+      "q": "UI-OPEN-09",
+      "pri": "Must",
+      "cov": "Covered",
+      "demo": [
+        "ava",
+        "projects",
+        "",
+        "Ava Mitchell > Project dashboard > Team"
+      ],
+      "specStatus": "Proposed",
+      "specRef": "Stakeholder feedback 2026-10",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "PD-02",
+      "epic": "E3",
+      "name": "Spot people approaching or over scoped hours",
+      "actor": "Employee billing to a project; project approver",
+      "population": "All billable employees and their project approvers",
+      "story": "As a project team member, I want progress bars coloured by how much of the scope is used so that we can discuss scope, workload, client funding and margin before hours run out.",
+      "trigger": "Employee views a project on Project dashboard",
+      "pre": "Scoped hours exist for the person, task or project",
+      "flow": "1. Open a project. 2. Each bar shows actual against scoped hours in green, yellow or red. 3. Needs attention lists everyone at 75% or more. 4. A legend explains the thresholds.",
+      "alt": "No hours recorded yet -> show Not started in a neutral colour.",
+      "rules": "Green at 1–74% of scoped hours, yellow at 75–90%, red at 91% or more. State is shown with text and icon as well as colour.",
+      "api": "Odoo scoped hours; UKG actual hours [SE-verify]",
+      "ac": [
+        [
+          "a person has used 80% of their scoped hours",
+          "I view the project team",
+          "their bar is yellow and they appear under Needs attention"
+        ],
+        [
+          "a person has used 91% or more",
+          "I view the project team",
+          "their bar is red and labelled At or over scope"
+        ]
+      ],
+      "ev": "Stakeholder feedback",
+      "src": "Stakeholder review (Beth); requested by several leaders",
+      "q": "UI-OPEN-09",
+      "pri": "Must",
+      "cov": "Covered",
+      "demo": [
+        "ava",
+        "projects",
+        "",
+        "Ava Mitchell > Project dashboard > Global Brand Activation"
+      ],
+      "specStatus": "Proposed",
+      "specRef": "Stakeholder feedback 2026-10",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "PD-03",
+      "epic": "E3",
+      "name": "Review task and subtask budget against actual hours",
+      "actor": "Employee billing to a project; project approver",
+      "population": "All billable employees and their project approvers",
+      "story": "As a project team member, I want to drill from the project into tasks and subtasks with budget and actual hours so that I can see where the hours are going.",
+      "trigger": "Employee opens the Tasks tab on Project dashboard",
+      "pre": "Project has tasks and subtasks with budgets in Odoo",
+      "flow": "1. Open the Tasks tab. 2. Each task shows budget, actual hours and progress. 3. Expand a task to see its subtasks with the same figures. 4. Each subtask lists the people on it with their own actual and scoped hours.",
+      "alt": "",
+      "rules": "The hierarchy is Project -> Task -> Subtask. Task totals are the sum of their subtasks; the project total matches the actual hours shown elsewhere in the app.",
+      "api": "Odoo project, task and subtask budgets; UKG actual hours by task [SE-verify]",
+      "ac": [
+        [
+          "a project has tasks with subtasks",
+          "I expand a task",
+          "I see each subtask's budget, actual hours and progress"
+        ],
+        [
+          "subtasks have actual hours",
+          "I compare totals",
+          "the task's actual hours equal the sum of its subtasks"
+        ]
+      ],
+      "ev": "Stakeholder feedback",
+      "src": "Product decision, 2026-10-22 (three-level hierarchy)",
+      "q": "UI-OPEN-09",
+      "pri": "Should",
+      "cov": "Covered",
+      "demo": [
+        "ava",
+        "projects",
+        "",
+        "Ava Mitchell > Project dashboard > Tasks"
+      ],
+      "specStatus": "Proposed",
+      "specRef": "Stakeholder feedback 2026-10",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "PD-04",
+      "epic": "E3",
+      "name": "Turn project hour alerts on or off",
+      "actor": "Employee billing to a project; project approver",
+      "population": "All billable employees and their project approvers",
+      "story": "As a project team member, I want to choose per project whether I get hour alerts so that large projects don't flood me with notifications.",
+      "trigger": "Employee changes Hour alerts on a project",
+      "pre": "Employee can see the project on Project dashboard",
+      "flow": "1. Turn on Hour alerts for a project. 2. Receive one summary of how many people are already at 75% or more. 3. Later alerts follow my notification preferences (NT-02). 4. Turn alerts off to stop them.",
+      "alt": "",
+      "rules": "Alerts are off by default and set per project and per person.",
+      "api": "CloudApper notification service",
+      "ac": [
+        [
+          "alerts are off for a project",
+          "I turn them on",
+          "I get one summary notification and the setting is kept"
+        ],
+        [
+          "alerts are on",
+          "I turn them off",
+          "I stop receiving alerts for that project"
+        ]
+      ],
+      "ev": "Stakeholder feedback",
+      "src": "Stakeholder review (Beth)",
+      "q": "",
+      "pri": "Should",
+      "cov": "Covered",
+      "demo": [
+        "ava",
+        "projects",
+        "",
+        "Ava Mitchell > Project dashboard > Hour alerts"
+      ],
+      "specStatus": "Proposed",
+      "specRef": "Stakeholder feedback 2026-10",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "NT-01",
+      "epic": "E7",
+      "name": "Read and manage in-app notifications",
+      "actor": "Any employee or manager",
+      "population": "All web and mobile users",
+      "story": "As a user, I want an inbox in the app for updates that concern me so that I don't miss decisions or alerts.",
+      "trigger": "A time off request is submitted, approved or refused, or a project hour alert is raised",
+      "pre": "In-app notifications are on for that kind of update",
+      "flow": "1. The bell shows the unread count. 2. Open the inbox (a panel on desktop, a sheet on mobile). 3. Notifications are grouped into Today and Earlier with relative times. 4. Open a notification to go to its screen and mark it read. 5. Mark one as unread, dismiss it, or mark all as read.",
+      "alt": "No notifications -> show an empty state.",
+      "rules": "New requests notify the manager; decisions notify the employee. A new notification is announced on arrival. The inbox keeps the latest 50 per person.",
+      "api": "CloudApper notification service",
+      "ac": [
+        [
+          "my manager approves my request",
+          "I open the inbox",
+          "I see an unread notification that opens Time Off"
+        ],
+        [
+          "I have unread notifications",
+          "I choose Mark all as read",
+          "the unread count clears"
+        ]
+      ],
+      "ev": "Prototype proposal",
+      "src": "Product decision, 2026-10-22",
+      "q": "",
+      "pri": "Should",
+      "cov": "Covered",
+      "demo": [
+        "ava",
+        "home",
+        "",
+        "Ava Mitchell > Notifications bell"
+      ],
+      "specStatus": "Prototype",
+      "specRef": "Demo 2026-10-22",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "NT-02",
+      "epic": "E7",
+      "name": "Choose in-app and email notification channels",
+      "actor": "Any employee or manager",
+      "population": "All web and mobile users",
+      "story": "As a user, I want to choose whether each kind of update reaches me in the app, by email or both so that I get what I need without noise.",
+      "trigger": "User opens notification Preferences",
+      "pre": "User has a work email address",
+      "flow": "1. Open the inbox and choose Preferences. 2. For Time off updates and Project hour alerts, turn In app and Email on or off. 3. See the address emails go to. 4. Emailed notifications are marked Also emailed.",
+      "alt": "Both channels off for a kind -> no notifications of that kind are sent.",
+      "rules": "Defaults are in-app on and email off. Preferences are per person.",
+      "api": "CloudApper notification service; email delivery [SE-verify]",
+      "ac": [
+        [
+          "email is on for Project hour alerts",
+          "an alert is raised",
+          "it is sent by email and marked Also emailed in the inbox"
+        ],
+        [
+          "in-app is off for Time off updates",
+          "my request is decided",
+          "no unread notification appears"
+        ]
+      ],
+      "ev": "Prototype proposal",
+      "src": "Product decision, 2026-10-22",
+      "q": "",
+      "pri": "Should",
+      "cov": "Covered",
+      "demo": [
+        "ava",
+        "home",
+        "",
+        "Ava Mitchell > Notifications > Preferences"
+      ],
+      "specStatus": "Prototype",
+      "specRef": "Demo 2026-10-22",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
+      "currentState": "",
+      "workflow": {
+        "delivery": "Prototyped",
+        "validation": "Not reviewed",
+        "acceptanceTest": "Not run",
+        "decision": "Pending"
+      }
+    },
+    {
+      "id": "TO-08",
+      "epic": "E4",
+      "name": "See how a balance breaks down from Home",
+      "actor": "Employee",
+      "population": "Eligible employees",
+      "story": "As an employee, I want to hover or tap a time off balance on Home to see what is left after my requests so that I can plan time off.",
+      "trigger": "Employee hovers or taps a balance on Home",
+      "pre": "Balances synced from UKG",
+      "flow": "1. On Home, hover or tap a balance. 2. See hours available now, pending requests and approved requests not yet taken. 3. See hours left after requests and the next accrual date and amount.",
+      "alt": "No pending or approved requests -> those lines are hidden.",
+      "rules": "Pending and approved hours count 8 hours per working day. Conflicts with REQ-TO-01 / TO-01 (show balance only on final review); needs a client decision.",
+      "api": "UKG accrual balances and accrual schedule",
+      "ac": [
+        [
+          "I have a pending request for 8 hours",
+          "I open my PTO details",
+          "I see 8 hours pending and the balance left after it"
+        ]
+      ],
+      "ev": "Prototype proposal",
+      "src": "Product decision, 2026-10-22",
+      "q": "UI-OPEN-16",
+      "pri": "Could",
+      "cov": "Covered",
+      "demo": [
+        "maya",
+        "home",
+        "",
+        "Maya Chen > Home > Time off balances"
+      ],
+      "specStatus": "Open decision",
+      "specRef": "Demo 2026-10-22",
+      "requirementIds": [],
+      "scope": "Draft",
+      "contentRevision": "2026-10-22-r1",
       "currentState": "",
       "workflow": {
         "delivery": "Prototyped",
@@ -2008,30 +2346,6 @@
       "status": "Open"
     },
     {
-      "id": "UI-OPEN-01",
-      "area": "Warehouse kiosk",
-      "question": "Confirm badge provisioning/encoding, lookup/authorization, scanners, timekeeping endpoint/timestamps, duplicate handling, and outage recovery. How will shared kiosk accounts be provisioned?",
-      "why": "Shared-account provisioning remains open. Action-first scanning, tiles, 60-second timeouts, and result feedback are approved.",
-      "priority": "High",
-      "journeyIds": [
-        "PU-09",
-        "KI-01",
-        "KI-02"
-      ],
-      "status": "Open"
-    },
-    {
-      "id": "Q-10",
-      "area": "Kiosk badge scanning",
-      "question": "Should badges be read with the device camera or a USB barcode scanner? Confirm the device to be used.",
-      "why": "Determines production kiosk hardware and badge input.",
-      "priority": "High",
-      "journeyIds": [
-        "PU-09"
-      ],
-      "status": "Open"
-    },
-    {
       "id": "Q-06",
       "area": "Projects on punches",
       "question": "Must every hourly employee punch include a project from Odoo?",
@@ -2052,18 +2366,6 @@
       "journeyIds": [
         "GR-08",
         "GR-09"
-      ],
-      "status": "Open"
-    },
-    {
-      "id": "UI-OPEN-02",
-      "area": "Kiosk",
-      "question": "Confirm the attached-scanner badge input: encoding, scan timing, and invalid-scan handling. The kiosk requests no job or project barcode (§3.1, §5.5).",
-      "why": "Decides the badge-scan input.",
-      "priority": "High",
-      "journeyIds": [
-        "PU-09",
-        "PU-10"
       ],
       "status": "Open"
     },
@@ -2108,6 +2410,17 @@
       "priority": "Medium",
       "journeyIds": [
         "CC-03"
+      ],
+      "status": "Open"
+    },
+    {
+      "id": "UI-OPEN-16",
+      "area": "Time Off balances",
+      "question": "May time off balances and their breakdown (pending, approved, left after requests, next accrual) appear outside final review, for example on Home? REQ-TO-01 currently limits balances to the final review step.",
+      "why": "The demo shows balances on Home with a details popover (TO-08), which conflicts with the confirmed rule in TO-01 / REQ-TO-01.",
+      "priority": "Medium",
+      "journeyIds": [
+        "TO-08"
       ],
       "status": "Open"
     }
@@ -2265,8 +2578,8 @@
     }
   ],
   "metadata": {
-    "revision": "8cdaa0f92f2b",
-    "importedAt": "2026-10-09T18:20:56.674Z",
-    "contentRevision": "2026-10-09-r3"
+    "revision": "29f6511e0200",
+    "importedAt": "2026-10-22T17:53:23.120Z",
+    "contentRevision": "2026-10-09-r3, 2026-10-22-r1"
   }
 }

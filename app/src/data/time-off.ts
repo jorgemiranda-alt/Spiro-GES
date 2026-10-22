@@ -32,6 +32,13 @@ export const TO_SAMPLE = {
     sick: { amount: 40, unit: "hours" },
     personal: { amount: 16, unit: "hours" },
   } as Record<string, { amount: number; unit: string }>,
+  // Illustrative accrual rules behind the balances above: hours earned each two-week pay period,
+  // or a yearly grant on January 1, plus carryover and the most a balance can hold.
+  accruals: {
+    pto: { perPeriod: 4.62, carryover: 16, cap: 120 },
+    sick: { perPeriod: 3.08, carryover: 24, cap: 80 },
+    personal: { yearly: 24, carryover: 0, cap: 24 },
+  } as Record<string, { perPeriod?: number; yearly?: number; carryover: number; cap: number }>,
 }
 
 const toStamp = (date: string, hour = "10:00") => `${date}T${hour}:00`

@@ -13,6 +13,7 @@ import { useDemo } from "@/store/store"
 import { useTimeOffIntent } from "@/features/time-off/time-off-intent"
 import { fmtDateRange, personName, typeLabel } from "@/features/time-off/time-off-model"
 import { StatusBadge } from "@/features/time-off/time-off-parts"
+import { BalanceDetails } from "./balance-details"
 
 type BudgetState = "over" | "near" | "watch" | "within"
 const STATE_TONE: Record<BudgetState, Tone> = { over: "danger", near: "warning", watch: "info", within: "success" }
@@ -74,10 +75,7 @@ export default function HomeView() {
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight md:text-[28px]">{ht("greeting")}, {P.short}</h1>
-          <p className="max-w-[60ch] text-[15px] text-muted-foreground">{ht("intro")}</p>
-        </div>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-[28px]">{ht("greeting")}, {P.short}</h1>
         <time dateTime={todayStr()} className="text-sm font-medium text-muted-foreground">
           {new Date().toLocaleDateString(locale(lang), { weekday: "long", month: "long", day: "numeric" })}
         </time>
@@ -201,11 +199,13 @@ export default function HomeView() {
                 <div className="text-xs text-muted-foreground">{ht("reportingPeriod")} · {ht("calendarMonth")}</div>
                 <div className="font-medium tabular-nums"><time dateTime={ymd(periodStart)}>{fmtLong(periodStart)}</time> – <time dateTime={ymd(periodEnd)}>{fmtLong(periodEnd)}</time></div>
               </div>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-3 space-y-1">
                 {balances.map(([type, b]) => (
-                  <li key={type} className="space-y-1.5">
-                    <div className="flex justify-between text-sm"><span>{tt(type)}</span><b className="font-semibold tabular-nums">{b.amount.toLocaleString(locale(lang))} {tt(b.unit)}</b></div>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-cerulean" style={{ width: `${Math.round((b.amount / maxBal) * 100)}%` }} /></div>
+                  <li key={type}>
+                    <BalanceDetails emp={emp} type={type} label={tt(type)} amount={b.amount} unit={tt(b.unit)}>
+                      <span className="flex justify-between text-sm"><span>{tt(type)}</span><b className="font-semibold tabular-nums">{b.amount.toLocaleString(locale(lang))} {tt(b.unit)}</b></span>
+                      <span className="block h-2 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-cerulean" style={{ width: `${Math.round((b.amount / maxBal) * 100)}%` }} /></span>
+                    </BalanceDetails>
                   </li>
                 ))}
               </ul>
