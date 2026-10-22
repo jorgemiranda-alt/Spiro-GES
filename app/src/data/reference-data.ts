@@ -4,7 +4,7 @@ export interface Project {
   approver: string; est: number; used: number; active: boolean; nonBill?: boolean; startIn?: number;
 }
 export type PersonaId = "ava" | "lukas" | "zofia" | "maya" | "oliver";
-export type ViewId = "home" | "punch" | "timecard" | "grid" | "kiosk" | "journeys" | "timeoff";
+export type ViewId = "home" | "punch" | "timecard" | "grid" | "kiosk" | "journeys" | "timeoff" | "projects";
 export interface Persona {
   name: string; short: string; initials: string; label: string; role: string; country: string;
   type: "hourly" | "salary" | "approver"; lang: string; projects: string[]; badge?: string;

@@ -16,6 +16,7 @@ const views: Record<ViewId, React.LazyExoticComponent<() => React.ReactElement>>
   kiosk: lazy(() => import("@/features/kiosk/kiosk-view")),
   journeys: lazy(() => import("@/features/journeys/journeys-view")),
   timeoff: lazy(() => import("@/features/time-off/time-off-view")),
+  projects: lazy(() => import("@/features/projects/projects-view")),
 }
 
 function ViewFallback() {

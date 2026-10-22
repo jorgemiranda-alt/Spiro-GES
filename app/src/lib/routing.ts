@@ -4,11 +4,11 @@ import { PERSONAS, type PersonaId, type ViewId } from "@/data/reference-data"
 import { useDemo } from "@/store/store"
 import type { TimecardLayout } from "@/store/types"
 
-export const ALL_VIEWS: ViewId[] = ["home", "punch", "timecard", "grid", "kiosk", "journeys", "timeoff"]
+export const ALL_VIEWS: ViewId[] = ["home", "punch", "timecard", "grid", "kiosk", "journeys", "timeoff", "projects"]
 const DEFAULT_PERSONA: Partial<Record<ViewId, PersonaId>> = { punch: "ava", timecard: "ava", grid: "zofia", kiosk: "lukas" }
 
-/** Views a persona can open: their own, plus Time Off and the journey register. */
-export const personaViews = (p: PersonaId): ViewId[] => [...new Set<ViewId>([...PERSONAS[p].views, "timeoff", "journeys"])]
+/** Views a persona can open: their own, plus the project dashboard, Time Off and the journey register. */
+export const personaViews = (p: PersonaId): ViewId[] => [...new Set<ViewId>([...PERSONAS[p].views, "projects", "timeoff", "journeys"])]
 
 function parse(hash: string) {
   const fragment = hash.replace(/^#/, "").replace(/^\/+/, "")

@@ -97,6 +97,8 @@ export interface Settings {
   tags: boolean
   hideViewAs: boolean
   layout: TimecardLayout
+  /** Project dashboard hour alerts the viewer turned on, by project code. */
+  projectAlerts?: Record<string, boolean>
 }
 
 export interface TimeOffHistory {

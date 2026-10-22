@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react"
 import {
-  CalendarDays, Clock3, House, LayoutGrid, Route, ScanLine, Table2, type LucideIcon,
+  CalendarDays, Clock3, FolderKanban, House, LayoutGrid, Route, ScanLine, Table2, type LucideIcon,
 } from "lucide-react"
 import type { ViewId } from "@/data/reference-data"
 import { cn } from "@/lib/utils"
@@ -8,7 +8,7 @@ import { useDemo } from "@/store/store"
 import { useUI } from "@/store/ui"
 
 export const VIEW_ICONS: Record<ViewId, LucideIcon> = {
-  home: House, punch: Clock3, timecard: Table2, grid: LayoutGrid, kiosk: ScanLine, journeys: Route, timeoff: CalendarDays,
+  home: House, punch: Clock3, timecard: Table2, grid: LayoutGrid, kiosk: ScanLine, journeys: Route, timeoff: CalendarDays, projects: FolderKanban,
 }
 
 /** Dashed journey IDs link a part of the screen to its entry in the requirements register. */
