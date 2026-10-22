@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Copy, Eye, EyeOff, Plus, RotateCcw, Search, Send } from "lucide-react"
+import { Copy, Eye, EyeOff, Plus, RotateCcw, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Highlightable, JourneyTags } from "@/components/app/common"
 import { ResponsivePanel } from "@/components/app/responsive-panel"
 import { MetaTag, Notice, StatusPill } from "@/components/app/status"
 import { PERSONAS, PROJECTS, type PersonaId } from "@/data/reference-data"
-import { fmtDay, fmtH, fmtWeekday, parseYmd, periodKey, todayStr } from "@/lib/dates"
+import { fmtDay, fmtH, fmtWeekday, parseYmd, todayStr } from "@/lib/dates"
 import {
   assigned, breakMinutes, derivedEntry, entryHours, HIDE_AHEAD_DAYS, isHidden, laborDefaults, laborParts, projectsOnDay, type Day,
 } from "@/lib/engine"
@@ -197,7 +197,6 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
   const s = useDemo(st => st.s)
   const setHidden = useDemo(st => st.setProjectHidden)
   const mutate = useDemo(st => st.mutate)
-  const submit = useDemo(st => st.submitModernWeek)
   const { lang, at, t } = useT()
   const today = todayStr()
   // Open on today when it has time; otherwise on the latest day that does, so the first view is never blank.
@@ -213,8 +212,6 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
   const day = days.find(d => d.date === selected) || days[0]
   const future = day.date > today
   const disabled = locked || future
-  const status = s.modernStatus[emp]?.[periodKey(s.period)] || "Draft"
-  const P = PERSONAS[emp as PersonaId]
 
   const codes = dayProjects(s, emp, day)
   const shown = codes.filter(c => !isHidden(s, emp, c))
@@ -248,14 +245,12 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
     <div className="space-y-5">
       <Notice tone="info" className="max-sm:px-3 max-sm:py-2.5 max-sm:text-[13px]">{at("proposalPlain")}</Notice>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl bg-primary px-4 py-4 text-primary-foreground shadow-raised sm:px-5 md:grid-cols-4 md:py-5">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl bg-primary px-4 py-4 text-primary-foreground shadow-raised sm:px-5 md:py-5">
         {[
-          [at("employee"), P.name],
           [fmtDay(day.date, lang) === fmtDay(today, lang) ? at("today") : fmtDay(day.date, lang), `${fmtH(selectedTotal, lang)} h`],
           [at("activeProjects"), at("assignedCount", { n: assigned(s, emp).length })],
-          [at("status"), status === "Submitted" ? at("submitted") : at("draft")],
         ].map(([k, v], i) => (
-          <div key={k} className={cn("min-w-0 space-y-0.5", i > 0 && "md:border-l md:border-primary-foreground/20 md:pl-4")}>
+          <div key={k} className={cn("min-w-0 space-y-0.5", i > 0 && "border-l border-primary-foreground/20 pl-4")}>
             <dt className="text-xs text-primary-foreground/75">{k}</dt>
             <dd className="truncate text-[15px] font-semibold tabular-nums">{v}</dd>
           </div>
@@ -352,15 +347,7 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
             <div><div className="text-xs text-muted-foreground">{at("dayTotal")}</div><div className="text-base font-semibold tabular-nums">{fmtH(selectedTotal, lang)} h</div></div>
             <div><div className="text-xs text-muted-foreground">{at("weekTotal")}</div><div className="text-base font-semibold tabular-nums">{fmtH(weekTotal, lang)} h</div></div>
           </div>
-          <p className="hidden flex-1 text-xs text-muted-foreground md:block">{status === "Submitted" ? at("submittedNote") : "Changes save automatically as a draft."}</p>
-          <Button
-            size="lg"
-            className="ml-auto"
-            disabled={locked || status === "Submitted" || !weekTotal}
-            onClick={() => { submit(); toast.success("Timecard submitted for approval.") }}
-          >
-            <Send /> {status === "Submitted" ? at("submitted") : at("submitTimecard")}
-          </Button>
+          <p className="hidden flex-1 text-right text-xs text-muted-foreground md:block">Changes save automatically as a draft.</p>
         </div>
       </div>
 
