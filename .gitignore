@@ -8,6 +8,11 @@
 !public/
 !public/**
 
+# React app (published by the Pages workflow); app/.gitignore excludes its build output and dependencies.
+!app/
+!app/**
+!PRODUCT.md
+
 # Reviewed, public-safe journey snapshot and its synchronization tools.
 # Raw sheet exports, backups and working documents stay local in outputs/.
 !data/

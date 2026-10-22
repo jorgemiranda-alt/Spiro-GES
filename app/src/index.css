@@ -1,0 +1,185 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/source-sans-3";
+
+/* Dark mode follows the operating system, like the original demo. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+@theme inline {
+  --font-sans: "Lufga", "Source Sans 3 Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-citron: var(--citron);
+  --color-cerulean: var(--cerulean);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-nav: var(--nav);
+  --color-nav-2: var(--nav-2);
+  --color-nav-foreground: var(--nav-foreground);
+  --color-nav-muted: var(--nav-muted);
+  --color-sidebar: var(--nav);
+  --color-sidebar-foreground: var(--nav-foreground);
+  --color-sidebar-border: var(--nav-2);
+  --color-sidebar-accent: var(--nav-2);
+  --color-sidebar-accent-foreground: var(--nav-foreground);
+  --color-sidebar-primary: var(--citron);
+  --color-sidebar-primary-foreground: var(--nav);
+  --color-sidebar-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.3);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.4);
+  --shadow-soft: 0 1px 2px rgb(40 44 37 / 0.05), 0 8px 24px -12px rgb(40 44 37 / 0.14);
+  --shadow-raised: 0 2px 4px rgb(40 44 37 / 0.06), 0 16px 40px -16px rgb(40 44 37 / 0.22);
+}
+
+/* Spiro brand palette: olive ink, petrol primary, citron and cerulean accents on ecru. */
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+  --background: #f8f7ef;
+  --foreground: #282c25;
+  --card: #ffffff;
+  --card-foreground: #282c25;
+  --popover: #ffffff;
+  --popover-foreground: #282c25;
+  --primary: #284e59;
+  --primary-foreground: #fffdf5;
+  --primary-soft: #e4eff1;
+  --secondary: #eeefe4;
+  --secondary-foreground: #282c25;
+  --muted: #f1f1e8;
+  --muted-foreground: #565c52;
+  --accent: #eceee2;
+  --accent-foreground: #282c25;
+  --destructive: #b8341a;
+  --destructive-soft: #fdebe5;
+  --success: #3d6b0f;
+  --success-soft: #eef6cf;
+  --warning: #74600a;
+  --warning-soft: #fcf7cf;
+  --citron: #bed73d;
+  --cerulean: #84bec7;
+  --border: #e3e5d8;
+  --input: #c4c9b8;
+  --ring: #2b7f8f;
+  --nav: #282c25;
+  --nav-2: #363b32;
+  --nav-foreground: #f3f4ea;
+  --nav-muted: #b3baa8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --background: #191c17;
+    --foreground: #eef0e4;
+    --card: #232720;
+    --card-foreground: #eef0e4;
+    --popover: #272b23;
+    --popover-foreground: #eef0e4;
+    --primary: #84c4cc;
+    --primary-foreground: #132022;
+    --primary-soft: #1f3a40;
+    --secondary: #2e3429;
+    --secondary-foreground: #eef0e4;
+    --muted: #2a3026;
+    --muted-foreground: #b8bfab;
+    --accent: #30372b;
+    --accent-foreground: #eef0e4;
+    --destructive: #ff8a70;
+    --destructive-soft: #3d211a;
+    --success: #bed73d;
+    --success-soft: #2a3312;
+    --warning: #e9e36b;
+    --warning-soft: #35340f;
+    --border: #353c30;
+    --input: #5a6250;
+    --ring: #9bd3dc;
+    --nav: #121510;
+    --nav-2: #20251c;
+    --nav-foreground: #eef0e4;
+    --nav-muted: #98a08c;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--cerulean) 55%, transparent);
+    color: var(--foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input, textarea {
+    caret-color: var(--primary);
+  }
+  time, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--input) transparent;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
