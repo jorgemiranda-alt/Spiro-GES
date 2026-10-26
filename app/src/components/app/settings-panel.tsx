@@ -1,10 +1,12 @@
 import { useId, type ReactNode } from "react"
-import { RotateCcw } from "lucide-react"
+import { Check, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { useT } from "@/lib/i18n"
+import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
+import type { ColorScheme } from "@/store/types"
 import { useUI } from "@/store/ui"
 import { ResponsivePanel } from "./responsive-panel"
 import { LayoutToggle } from "./layout-toggle"
@@ -20,6 +22,59 @@ function ToggleRow({ checked, onChange, title, children }: { checked: boolean; o
         <span className="block text-sm text-muted-foreground">{children}</span>
       </label>
       <Switch id={id} checked={checked} onCheckedChange={onChange} className="mt-0.5" />
+    </div>
+  )
+}
+
+/** Swatches mirror the tokens in index.css: navigation, primary, background. */
+const SCHEMES: { id: ColorScheme; name: string; note: string; nav: string; primary: string; bg: string }[] = [
+  { id: "spiro", name: "Spiro", note: "Graphite and Marine on Cream", nav: "#282c25", primary: "#284e59", bg: "#f8f7ef" },
+  { id: "marine", name: "Marine", note: "Marine navigation, Cerulean accents", nav: "#1a4f5a", primary: "#1a4f5a", bg: "#f6f8f4" },
+  { id: "fern", name: "Fern", note: "Fern with Citron highlights", nav: "#4d554b", primary: "#4d554b", bg: "#f8f7ef" },
+  { id: "cloud", name: "Cloud", note: "Cool Cloud surfaces, Graphite navigation", nav: "#20271e", primary: "#1a4f5a", bg: "#f4f7f9" },
+]
+
+function SchemePicker() {
+  const current = useDemo(st => st.s.settings.scheme) || "spiro"
+  const setSetting = useDemo(st => st.setSetting)
+  return (
+    <div role="radiogroup" aria-label="Color scheme" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {SCHEMES.map(x => {
+        const on = x.id === current
+        return (
+          <button
+            key={x.id}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => setSetting("scheme", x.id)}
+            className={cn(
+              "group relative flex flex-col gap-2 rounded-xl border bg-card p-2 text-left outline-none transition-[border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-ring/50",
+              on ? "border-primary ring-2 ring-primary/25" : "hover:border-input",
+            )}
+          >
+            {/* A tiny app: sidebar, a card with a primary bar, on the scheme's background. */}
+            <span className="flex h-14 overflow-hidden rounded-lg ring-1 ring-black/5" style={{ background: x.bg }} aria-hidden>
+              <span className="flex w-1/3 flex-col gap-1 p-1.5" style={{ background: x.nav }}>
+                <span className="h-1.5 w-3/4 rounded-full bg-citron" />
+                <span className="h-1 w-1/2 rounded-full bg-white/40" />
+                <span className="h-1 w-2/3 rounded-full bg-white/40" />
+              </span>
+              <span className="flex flex-1 flex-col justify-center gap-1 p-1.5">
+                <span className="h-1.5 w-2/3 rounded-full bg-black/15" />
+                <span className="h-3 w-full rounded" style={{ background: x.primary }} />
+              </span>
+            </span>
+            <span className="min-w-0 px-0.5">
+              <span className="flex items-center justify-between gap-1 text-sm font-semibold">
+                {x.name}
+                {on && <Check className="size-4 text-primary" aria-hidden />}
+              </span>
+              <span className="block text-xs leading-snug text-muted-foreground">{x.note}</span>
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -50,6 +105,11 @@ export function SettingsPanel() {
         </Button>
       }
     >
+      <section className="space-y-2 pb-5">
+        <h3 className="text-sm font-semibold">Color scheme</h3>
+        <p className="text-sm text-muted-foreground">Light themes built from the Spiro brand palette. Status colors stay the same in every theme.</p>
+        <SchemePicker />
+      </section>
       <section className="space-y-2 pb-2">
         <h3 className="text-sm font-semibold">{at("layout")} · timecards</h3>
         <p className="text-sm text-muted-foreground">Compare the current UKG-style grid with the proposed project cards. The choice applies to My Timecard and Project hours.</p>

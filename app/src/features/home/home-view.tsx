@@ -16,15 +16,16 @@ import { StatusBadge } from "@/features/time-off/time-off-parts"
 import { BalanceDetails } from "./balance-details"
 
 type BudgetState = "over" | "near" | "watch" | "within"
-const STATE_TONE: Record<BudgetState, Tone> = { over: "danger", near: "warning", watch: "info", within: "success" }
-const BAR: Record<BudgetState, string> = { over: "bg-destructive", near: "bg-warning", watch: "bg-primary", within: "bg-success" }
+// Green 1–74% of estimate, yellow 75–90%, red 91% and up (same thresholds as the project dashboard).
+const STATE_TONE: Record<BudgetState, Tone> = { over: "danger", near: "danger", watch: "warning", within: "success" }
+const BAR: Record<BudgetState, string> = { over: "bg-destructive", near: "bg-destructive", watch: "bg-amber-400", within: "bg-success" }
 
 function Track({ pct, state, label }: { pct: number; state: BudgetState; label: string }) {
   return (
     <div role="img" aria-label={label} className="relative h-2.5 overflow-hidden rounded-full bg-muted">
       <span className={cn("absolute inset-y-0 left-0 rounded-full transition-[width] duration-500", BAR[state])} style={{ width: `${Math.min(100, pct)}%` }} />
       <i className="absolute inset-y-0 left-3/4 w-px bg-card/90" aria-hidden />
-      <i className="absolute inset-y-0 left-[90%] w-px bg-card/90" aria-hidden />
+      <i className="absolute inset-y-0 left-[91%] w-px bg-card/90" aria-hidden />
     </div>
   )
 }
@@ -46,7 +47,7 @@ export default function HomeView() {
   const totalEst = rows.reduce((a, r) => a + r.estimate, 0), totalAct = rows.reduce((a, r) => a + r.actual, 0)
   const pct = totalEst ? Math.max(0, (totalAct / totalEst) * 100) : 0
   const visible = showAll ? rows : rows.slice(0, 4)
-  const stateOf = (p: number): BudgetState => (p >= 100 ? "over" : p >= 90 ? "near" : p >= 75 ? "watch" : "within")
+  const stateOf = (p: number): BudgetState => (p >= 100 ? "over" : p >= 91 ? "near" : p >= 75 ? "watch" : "within")
   const stateLabel = (st: BudgetState) => ht(st === "over" ? "overEstimate" : st === "near" ? "nearEstimate" : st === "watch" ? "watchEstimate" : "withinEstimate")
 
   const openTimeOff = (opts: { scope?: "mine" | "team"; startRequest?: boolean; filter?: string }) => {

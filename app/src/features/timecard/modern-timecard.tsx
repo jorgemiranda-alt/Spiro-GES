@@ -3,7 +3,6 @@ import { Copy, Eye, EyeOff, Plus, RotateCcw, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Highlightable, JourneyTags } from "@/components/app/common"
 import { ResponsivePanel } from "@/components/app/responsive-panel"
@@ -17,8 +16,6 @@ import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import type { DemoState, ModernEntry } from "@/store/types"
-
-const BREAK_OPTIONS = ["0:00", "0:15", "0:20", "0:30", "0:45", "1:00", "1:30", "2:00"]
 
 /** The entry shown for a project on a day: what the employee typed, else what the punches imply. */
 function effectiveEntry(s: DemoState, emp: string, day: Day, code: string): { entry: ModernEntry; edited: boolean } {
@@ -72,7 +69,6 @@ function ProjectCard({ emp, day, code, disabled }: { emp: string; day: Day; code
   const lp = laborParts(seg?.labor || laborDefaults(emp))
   const idBase = `${day.date}-${code}`
   const update = (patch: Partial<ModernEntry>) => setEntry(day.date, code, patch, derived)
-  const breakOptions = BREAK_OPTIONS.includes(entry.brk || "0:00") ? BREAK_OPTIONS : [...BREAK_OPTIONS, entry.brk].sort((a, b) => breakMinutes(a) - breakMinutes(b))
 
   return (
     <li className="rounded-2xl border bg-card p-4 shadow-soft transition-shadow sm:p-5">
@@ -95,20 +91,11 @@ function ProjectCard({ emp, day, code, disabled }: { emp: string; day: Day; code
         </label>
       </div>
 
-      <fieldset disabled={disabled} className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <fieldset disabled={disabled} className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <legend className="sr-only">{code} · {fmtDay(day.date, lang)}</legend>
         <TimeField id={`${idBase}-start`} label={at("start")} value={entry.start} onChange={v => update({ start: v })} invalid={timeInvalid && !entry.start} />
         <TimeField id={`${idBase}-end`} label={at("end")} value={entry.end} onChange={v => update({ end: v })} invalid={(timeInvalid && !entry.end) || orderInvalid} />
-        <div className="space-y-1.5">
-          <label htmlFor={`${idBase}-break`} className="text-xs font-medium text-muted-foreground">{at("break")}</label>
-          <Select value={entry.brk || "0:00"} onValueChange={v => update({ brk: v })} disabled={disabled}>
-            <SelectTrigger id={`${idBase}-break`} className="h-11 w-full text-base tabular-nums data-[size=default]:h-11"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {breakOptions.map(o => <SelectItem key={o} value={o} className="tabular-nums">{o}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
+        <div className="col-span-2 space-y-1.5 sm:col-span-1">
           <span className="text-xs font-medium text-muted-foreground" id={`${idBase}-hours`}>{at("hours")}</span>
           <output aria-labelledby={`${idBase}-hours`} className="flex h-11 items-center rounded-lg bg-muted px-3 text-base font-semibold tabular-nums">
             {hours !== null ? fmtH(hours, lang) : "—"}
@@ -243,20 +230,6 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
 
   return (
     <div className="space-y-5">
-      <Notice tone="info" className="max-sm:px-3 max-sm:py-2.5 max-sm:text-[13px]">{at("proposalPlain")}</Notice>
-
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl bg-primary px-4 py-4 text-primary-foreground shadow-raised sm:px-5 md:py-5">
-        {[
-          [fmtDay(day.date, lang) === fmtDay(today, lang) ? at("today") : fmtDay(day.date, lang), `${fmtH(selectedTotal, lang)} h`],
-          [at("activeProjects"), at("assignedCount", { n: assigned(s, emp).length })],
-        ].map(([k, v], i) => (
-          <div key={k} className={cn("min-w-0 space-y-0.5", i > 0 && "border-l border-primary-foreground/20 pl-4")}>
-            <dt className="text-xs text-primary-foreground/75">{k}</dt>
-            <dd className="truncate text-[15px] font-semibold tabular-nums">{v}</dd>
-          </div>
-        ))}
-      </dl>
-
       <div role="tablist" aria-label="Day" className="flex gap-1 sm:gap-2">
         {days.map(d => {
           const on = d.date === day.date, h = hoursByDay.get(d.date) || 0, weekend = [0, 6].includes(parseYmd(d.date).getDay())

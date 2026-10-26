@@ -92,11 +92,15 @@ export interface ModernEntry {
 
 export type TimecardLayout = "classic" | "modern"
 
+export type ColorScheme = "spiro" | "marine" | "fern" | "cloud"
+
 export interface Settings {
   simDuplicatePunchError: boolean
   tags: boolean
   hideViewAs: boolean
   layout: TimecardLayout
+  /** Light color scheme built from the Spiro brand palette; missing means the default. */
+  scheme?: ColorScheme
   /** Project dashboard hour alerts the viewer turned on, by project code. */
   projectAlerts?: Record<string, boolean>
 }

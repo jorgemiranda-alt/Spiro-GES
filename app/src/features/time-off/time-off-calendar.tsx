@@ -5,7 +5,7 @@ import { addDays, locale, parseYmd, todayStr, ymd } from "@/lib/dates"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { pickDate } from "./time-off-actions"
-import { fmtDate, toType, useTimeOffUI, type TimeOffDraft } from "./time-off-model"
+import { fmtDate, isWorkday, toType, useTimeOffUI, type TimeOffDraft } from "./time-off-model"
 
 const shiftMonth = (month: string, delta: number) => {
   const d = parseYmd(month + "-01")
@@ -88,7 +88,8 @@ export function TimeOffCalendar({ draft }: { draft: TimeOffDraft }) {
           {days.map((date, i) => {
             const selected = date === draft.start || (!single && date === draft.end)
             const inRange = !single && !!draft.start && !!draft.end && date > draft.start && date < draft.end
-            const disabled = !allowPast && date < today
+            const weekend = !isWorkday(date)
+            const disabled = (!allowPast && date < today) || weekend
             const isToday = date === today
             return (
               <div key={date} className={cn("flex justify-center", inRange && "bg-primary-soft", !single && draft.start !== draft.end && date === draft.start && "rounded-l-full bg-primary-soft", !single && draft.start !== draft.end && date === draft.end && "rounded-r-full bg-primary-soft")}>
@@ -96,7 +97,8 @@ export function TimeOffCalendar({ draft }: { draft: TimeOffDraft }) {
                   type="button"
                   data-date={date}
                   tabIndex={date === tabDate ? 0 : -1}
-                  aria-label={fmtDate(date, lang, true)}
+                  aria-label={weekend ? `${fmtDate(date, lang, true)}. ${tt("weekendUnavailable")}` : fmtDate(date, lang, true)}
+                  title={weekend ? tt("weekendUnavailable") : undefined}
                   aria-pressed={selected}
                   aria-disabled={disabled || undefined}
                   aria-current={isToday ? "date" : undefined}

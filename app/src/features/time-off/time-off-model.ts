@@ -46,6 +46,12 @@ export interface TimeOffUI {
   /** "YYYY-MM" shown in the calendar. */
   month: string
   rangePicking: boolean
+  /** Request list or month calendar. */
+  view: "list" | "calendar"
+  /** "YYYY-MM" shown in the calendar view (separate from the request form's picker). */
+  viewMonth: string
+  /** Day picked in the calendar view. */
+  viewDay: string
   lastDecision: string | null
   dialog: { id: string; action: DecisionAction; owner: string } | null
 }
@@ -53,7 +59,8 @@ export interface TimeOffUI {
 export const freshUI = (owner: string): TimeOffUI => ({
   owner, scope: "mine", screen: "list", selected: null, detailOpen: false, filter: "all", typeFilter: "all",
   employeeFilter: "all", from: "", until: "", draft: null, errors: {}, busy: false, refreshing: false, balance: null,
-  confirmed: null, month: todayStr().slice(0, 7), rangePicking: false, lastDecision: null, dialog: null,
+  confirmed: null, month: todayStr().slice(0, 7), rangePicking: false,
+  view: "list", viewMonth: todayStr().slice(0, 7), viewDay: todayStr(), lastDecision: null, dialog: null,
 })
 
 interface UIStore {
@@ -132,6 +139,8 @@ export function quantity(r: Span, lang: string) {
 /* ---------- validation ---------- */
 
 export const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && ymd(parseYmd(value)) === value
+/** Requests start and end on a working day; a range may span a weekend in between. */
+export const isWorkday = (date: string) => TO_SAMPLE.workdays.includes(parseYmd(date).getDay())
 
 export function validate(d: TimeOffDraft, persona: string): DraftErrors {
   const errors: DraftErrors = {}
@@ -144,6 +153,7 @@ export function validate(d: TimeOffDraft, persona: string): DraftErrors {
   dates.forEach(k => {
     if (!validDate(d[k])) errors[k] = "requiredDate"
     else if (!type.allowPast && d[k] < todayStr()) errors[k] = "pastError"
+    else if (!isWorkday(d[k])) errors[k] = "weekendError"
   })
   if (d.duration === "Full Day" && validDate(d.start) && validDate(d.end) && d.end < d.start) errors.end = "invalidRange"
   if (d.duration === "Hours") {

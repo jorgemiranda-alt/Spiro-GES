@@ -1,13 +1,14 @@
 import { useState } from "react"
 import { BellRing, ChevronRight, FolderKanban, Info } from "lucide-react"
 import { toast } from "sonner"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/app/common"
 import { StatusPill, type Tone } from "@/components/app/status"
 import { PROJECTS } from "@/data/reference-data"
-import { levelOf, pctOf, projectPlan, visibleProjects, type Level, type MemberTotals, type PlanTask } from "@/data/project-plans"
+import { levelOf, pctOf, projectPlan, visibleProjects, type Level, type MemberTotals, type PlanTask, type TeamMember } from "@/data/project-plans"
 import { locale } from "@/lib/dates"
 import { notifyPerson, prefsFor } from "@/lib/notifications"
 import { useT } from "@/lib/i18n"
@@ -17,6 +18,65 @@ import { useDemo } from "@/store/store"
 const BAR: Record<Level, string> = { none: "bg-muted-foreground/30", green: "bg-success", yellow: "bg-amber-400", red: "bg-destructive" }
 const TONE: Record<Level, Tone> = { none: "neutral", green: "success", yellow: "warning", red: "danger" }
 const LABEL: Record<Level, string> = { none: "pdNotStarted", green: "pdGreen", yellow: "pdYellow", red: "pdRed" }
+
+/** A person on a subtask: compact hours on the chip, the full picture in a popover. */
+function PersonChip({ member, actual, scoped, subtask, you, fmt }: {
+  member: TeamMember; actual: number; scoped: number; subtask: string; you: boolean; fmt: (v: number) => string
+}) {
+  const { at } = useT()
+  const pct = pctOf(actual, scoped)
+  const level = levelOf(pct)
+  const left = scoped - actual
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${member.name} · ${subtask} · ${fmt(actual)}/${fmt(scoped)} h`}
+          className={cn(
+            "inline-flex h-6 items-center gap-1.5 rounded-full bg-card px-2 text-xs ring-1 ring-border outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/60 data-[state=open]:ring-2 data-[state=open]:ring-primary/40",
+            you && "ring-citron",
+          )}
+        >
+          <span className={cn("size-1.5 rounded-full", BAR[level])} aria-hidden />
+          <b className="font-semibold">{member.initials}</b>
+          <span className="text-muted-foreground tabular-nums">{fmt(actual)}/{fmt(scoped)} h</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 space-y-3 p-4">
+        <header className="flex items-start gap-3">
+          <Initials text={member.initials} you={you} />
+          <div className="min-w-0">
+            <p className="truncate font-semibold">
+              {member.name}{you && <span className="ml-2 rounded-full bg-citron/40 px-2 py-0.5 text-xs font-medium">{at("pdYou")}</span>}
+            </p>
+            <p className="truncate text-sm text-muted-foreground">{member.role}</p>
+          </div>
+        </header>
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="truncate font-medium">{subtask}</span>
+            <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(pct)}%</span>
+          </div>
+          <Meter actual={actual} budget={scoped} label={`${fmt(actual)} / ${fmt(scoped)} h`} />
+        </div>
+        <dl className="grid grid-cols-3 gap-2 text-center">
+          {[
+            [at("pdScoped"), `${fmt(scoped)} h`],
+            [at("pdActual"), `${fmt(actual)} h`],
+            [left >= 0 ? at("pdRemaining") : at("pdOver"), `${fmt(Math.abs(left))} h`],
+          ].map(([k, v], i) => (
+            <div key={k} className="rounded-lg bg-muted px-2 py-1.5">
+              <dt className="text-[11px] text-muted-foreground">{k}</dt>
+              <dd className={cn("text-sm font-semibold tabular-nums", i === 2 && left < 0 && "text-destructive")}>{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <StatusPill tone={TONE[level]}>{at(LABEL[level])}</StatusPill>
+      </PopoverContent>
+    </Popover>
+  )
+}
 
 /** Progress bar coloured by Beth's thresholds; ticks mark 75 % and 91 %. */
 function Meter({ actual, budget, label, className }: { actual: number; budget: number; label: string; className?: string }) {
@@ -195,16 +255,17 @@ export default function ProjectsView() {
                           <span className="min-w-0">
                             <span className="block truncate text-[15px]">{sub.name}</span>
                             <span className="mt-1 flex flex-wrap gap-1.5">
-                              {sub.people.map(a => {
-                                const m = plan.team.find(x => x.member.id === a.member)!.member
-                                return (
-                                  <span key={a.member} title={m.name} className={cn("inline-flex h-6 items-center gap-1.5 rounded-full bg-card px-2 text-xs ring-1 ring-border", a.member === persona && "ring-citron")}>
-                                    <span className={cn("size-1.5 rounded-full", BAR[levelOf(pctOf(a.actual, a.scoped))])} aria-hidden />
-                                    <b className="font-semibold">{m.initials}</b>
-                                    <span className="text-muted-foreground tabular-nums">{fmt(a.actual)}/{fmt(a.scoped)} h</span>
-                                  </span>
-                                )
-                              })}
+                              {sub.people.map(a => (
+                                <PersonChip
+                                  key={a.member}
+                                  member={plan.team.find(x => x.member.id === a.member)!.member}
+                                  actual={a.actual}
+                                  scoped={a.scoped}
+                                  subtask={sub.name}
+                                  you={a.member === persona}
+                                  fmt={fmt}
+                                />
+                              ))}
                             </span>
                           </span>
                           <Hours actual={sub.actual} budget={sub.budget} fmt={fmt} />

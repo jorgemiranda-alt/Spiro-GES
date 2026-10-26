@@ -8,7 +8,7 @@ import { useDemo } from "@/store/store"
 import type { TimeOffRequest } from "@/store/types"
 import { useTimeOffScenarios } from "./time-off-demo"
 import {
-  accessible, applyRules, clearedFilters, eligibleTypes, filtered, isManager, newDraft, nextId, notify, stampNow,
+  accessible, applyRules, clearedFilters, eligibleTypes, filtered, isManager, isWorkday, newDraft, nextId, notify, stampNow,
   toType, useTimeOffUI, validDate, validate, type DecisionAction, type Scope, type TimeOffDraft,
 } from "./time-off-model"
 
@@ -115,6 +115,8 @@ export function setDraftField<K extends keyof TimeOffDraft>(key: K, value: strin
     rangePicking = false
   }
   if (key === "end") rangePicking = false
+  // Say so as soon as a typed date lands on a weekend, rather than waiting for Review.
+  if ((key === "start" || key === "end") && validDate(value) && !isWorkday(value)) errors[key as "start" | "end"] = "weekendError"
   patch({ draft: d, errors, month, rangePicking })
 }
 
@@ -123,6 +125,7 @@ export function pickDate(date: string) {
   const d = u.draft
   if (!d) return
   if (!toType(d.type)?.allowPast && date < todayStr()) return
+  if (!isWorkday(date)) return
   const next = { ...d }
   let rangePicking = u.rangePicking
   if (d.duration !== "Full Day") { next.start = date; next.end = date; rangePicking = false }

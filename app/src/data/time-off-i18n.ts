@@ -108,6 +108,8 @@ export const TO_COPY: Record<string, string[]> = {
  changed:['This request is no longer Submitted. Its current status is shown.','Cette demande n’est plus Soumise. Son statut actuel est affiché.','Dieser Antrag ist nicht mehr Eingereicht. Der aktuelle Status wird angezeigt.','Deze aanvraag is niet meer Ingediend. De huidige status wordt getoond.','Wniosek nie ma już statusu Złożony. Wyświetlono aktualny status.'],
  requiredDate:['Enter a valid date.','Saisissez une date valide.','Gültiges Datum eingeben.','Voer een geldige datum in.','Wpisz prawidłową datę.'],
  invalidRange:['End date must be on or after the start date.','La date de fin doit être égale ou postérieure à la date de début.','Das Enddatum darf nicht vor dem Startdatum liegen.','De einddatum mag niet vóór de begindatum liggen.','Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.'],
+ weekendError:['Time off starts and ends on a working day (Monday to Friday). Choose a weekday.','Un congé commence et se termine un jour ouvré (du lundi au vendredi). Choisissez un jour de semaine.','Eine Abwesenheit beginnt und endet an einem Arbeitstag (Montag bis Freitag). Wählen Sie einen Wochentag.','Verlof begint en eindigt op een werkdag (maandag tot en met vrijdag). Kies een weekdag.','Nieobecność zaczyna się i kończy w dniu roboczym (od poniedziałku do piątku). Wybierz dzień powszedni.'],
+ weekendUnavailable:['Weekend, not available','Week-end, non disponible','Wochenende, nicht verfügbar','Weekend, niet beschikbaar','Weekend, niedostępny'],
  pastError:['Past dates are allowed only for Sick Time. Choose today or a future date.','Les dates passées sont réservées au congé maladie. Choisissez aujourd’hui ou une date future.','Vergangene Daten sind nur bei Krankheitszeit erlaubt. Heute oder ein zukünftiges Datum wählen.','Datums in het verleden zijn alleen toegestaan voor Ziekteverlof. Kies vandaag of een toekomstige datum.','Daty przeszłe są dozwolone tylko dla nieobecności chorobowej. Wybierz dziś lub datę przyszłą.'],
  hoursError:['Enter a number of hours greater than zero.','Saisissez un nombre d’heures supérieur à zéro.','Eine Stundenzahl größer als null eingeben.','Voer een aantal uren groter dan nul in.','Wpisz liczbę godzin większą od zera.'],
  timeError:['Enter a valid start time.','Saisissez une heure de début valide.','Gültige Startzeit eingeben.','Voer een geldige begintijd in.','Wpisz prawidłową godzinę rozpoczęcia.'],
@@ -117,5 +119,15 @@ export const TO_COPY: Record<string, string[]> = {
  notification:['{type} request: {status}','Demande {type} : {status}','{type}-Antrag: {status}','{type}-aanvraag: {status}','Wniosek {type}: {status}'],
  dismiss:['Dismiss notification','Fermer la notification','Benachrichtigung schließen','Melding sluiten','Zamknij powiadomienie'],
  viewAll:['View all requests','Voir toutes les demandes','Alle Anträge ansehen','Alle aanvragen bekijken','Zobacz wszystkie wnioski'],
- selectedDate:['Selected: {date}','Date choisie : {date}','Gewählt: {date}','Gekozen: {date}','Wybrano: {date}']
+ selectedDate:['Selected: {date}','Date choisie : {date}','Gewählt: {date}','Gekozen: {date}','Wybrano: {date}'],
+ viewAs:['Show as','Afficher en','Anzeigen als','Weergeven als','Pokaż jako'],
+ viewList:['List','Liste','Liste','Lijst','Lista'],
+ viewCalendar:['Calendar','Calendrier','Kalender','Kalender','Kalendarz'],
+ offCount:['{n} off','{n} absent(s)','{n} abwesend','{n} afwezig','{n} nieob.'],
+ moreCount:['+{n} more','+{n} de plus','+{n} weitere','+{n} meer','+{n} więcej'],
+ dayEmptyTeam:['No one on your team is off this day.','Personne de votre équipe n’est absent ce jour-là.','An diesem Tag ist niemand aus Ihrem Team abwesend.','Niemand uit je team is afwezig op deze dag.','Tego dnia nikt z zespołu nie jest nieobecny.'],
+ dayEmptyMine:['No time off on this day.','Aucun congé ce jour-là.','An diesem Tag keine Abwesenheit.','Geen verlof op deze dag.','Brak nieobecności tego dnia.'],
+ coverageHint:['{n} or more people off','{n} personnes ou plus absentes','{n} oder mehr Personen abwesend','{n} of meer mensen afwezig','{n} lub więcej osób nieobecnych'],
+ calendarNote:['Shows submitted and approved requests. Weekends are skipped.','Affiche les demandes soumises et approuvées. Les week-ends sont ignorés.','Zeigt eingereichte und genehmigte Anträge. Wochenenden werden ausgelassen.','Toont ingediende en goedgekeurde aanvragen. Weekenden worden overgeslagen.','Pokazuje wnioski złożone i zatwierdzone. Weekendy są pomijane.'],
+ thisMonth:['This month','Ce mois-ci','Dieser Monat','Deze maand','Ten miesiąc']
 };

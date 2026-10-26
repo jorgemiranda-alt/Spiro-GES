@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { CalendarDays, Check, ChevronLeft, ChevronRight, Info, Plus, RefreshCw, X } from "lucide-react"
+import { CalendarDays, Check, ChevronLeft, ChevronRight, Info, List, Plus, RefreshCw, X } from "lucide-react"
 import { JourneyTags, PageHeader } from "@/components/app/common"
 import { ResponsivePanel, useIsMobile } from "@/components/app/responsive-panel"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,7 @@ import {
   accessible, eligibleTypes, filtered, fmtDate, fmtDateRange, fmtWhen, isManager, managerName, personName, quantity,
   teamQueue, typeLabel, useTimeOffUI, validDate, visibleIn,
 } from "./time-off-model"
+import { TimeOffMonth } from "./time-off-month"
 import { StatusBadge } from "./time-off-parts"
 
 /* ---------- header & scope ---------- */
@@ -89,6 +90,31 @@ function ScopeSwitch() {
     <div role="group" aria-label={tt("title")} className="flex w-full gap-1 rounded-xl bg-muted p-1 sm:w-fit">
       {item("mine", tt("my"))}
       {item("team", tt("team"), queue)}
+    </div>
+  )
+}
+
+function ViewSwitch() {
+  const { tt } = useT()
+  const view = useTimeOffUI(st => st.ui.view)
+  const patch = useTimeOffUI(st => st.patch)
+  const item = (value: "list" | "calendar", Icon: typeof List, label: string) => (
+    <button
+      type="button"
+      aria-pressed={view === value}
+      onClick={() => patch({ view: value, detailOpen: false })}
+      className={cn(
+        "flex h-10 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex-none",
+        view === value ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <Icon className="size-4" aria-hidden /> {label}
+    </button>
+  )
+  return (
+    <div role="group" aria-label={tt("viewAs")} className="flex w-full gap-1 rounded-xl bg-muted p-1 sm:ml-auto sm:w-fit">
+      {item("list", List, tt("viewList"))}
+      {item("calendar", CalendarDays, tt("viewCalendar"))}
     </div>
   )
 }
@@ -287,7 +313,8 @@ function HistoryList({ r }: { r: TimeOffRequest }) {
   )
 }
 
-function Detail({ r }: { r: TimeOffRequest | undefined }) {
+/** Request details: a side panel beside the list, or the body of the calendar view's dialog. */
+function Detail({ r, dialog = false }: { r: TimeOffRequest | undefined; dialog?: boolean }) {
   const { tt, lang } = useT()
   const persona = useDemo(st => st.s.persona)
   const scope = useTimeOffUI(st => st.ui.scope)
@@ -305,11 +332,16 @@ function Detail({ r }: { r: TimeOffRequest | undefined }) {
       id="to-request-detail"
       tabIndex={-1}
       aria-label={tt("viewRequest")}
-      className="space-y-5 rounded-2xl border bg-card p-4 shadow-soft outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:p-6 lg:sticky lg:top-6"
+      className={cn(
+        "space-y-5 outline-none",
+        !dialog && "rounded-2xl border bg-card p-4 shadow-soft focus-visible:ring-3 focus-visible:ring-ring/50 sm:p-6 lg:sticky lg:top-6",
+      )}
     >
-      <Button variant="ghost" className="-mt-1 -ml-3 h-10 lg:hidden" onClick={closeDetail}>
-        <ChevronLeft /> {tt(scope === "team" ? "backTeam" : "back")}
-      </Button>
+      {!dialog && (
+        <Button variant="ghost" className="-mt-1 -ml-3 h-10 lg:hidden" onClick={closeDetail}>
+          <ChevronLeft /> {tt(scope === "team" ? "backTeam" : "back")}
+        </Button>
+      )}
       <header className="space-y-2">
         <div className="flex items-center justify-between gap-3">
           <span className="font-mono text-sm text-muted-foreground">{r.id}</span>
@@ -339,7 +371,10 @@ function Detail({ r }: { r: TimeOffRequest | undefined }) {
         <HistoryList r={r} />
       </section>
       {r.status === "Submitted" && (mine || manager) && (
-        <footer className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] -mx-4 -mb-4 flex gap-2 rounded-b-2xl border-t bg-card/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:-mb-6 sm:px-6 lg:static lg:bg-card">
+        <footer className={cn(
+          "flex gap-2",
+          dialog ? "border-t pt-4" : "sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] -mx-4 -mb-4 rounded-b-2xl border-t bg-card/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:-mb-6 sm:px-6 lg:static lg:bg-card",
+        )}>
           {mine ? (
             <>
               <Button variant="outline" size="lg" className="flex-1" onClick={() => openDecision(r.id, "cancel")}>{tt("cancelRequest")}</Button>
@@ -445,7 +480,10 @@ export function RequestList() {
   const current = requests.find(x => x.id === ui.selected) || requests[0]
   const caughtUp = team && ui.filter === "Submitted" && !scopeRequests.some(x => x.status === "Submitted")
   const canRequest = !team && eligibleTypes(s.persona).length > 0
-  const detailOnly = mobile && ui.detailOpen && !!current
+  const calendar = ui.view === "calendar"
+  // The calendar keeps its place: details open in a dialog over it instead of replacing the screen.
+  const detailOnly = mobile && ui.detailOpen && !!current && !calendar
+  const dialogRequest = calendar && ui.detailOpen ? s.timeOff.requests.find(x => x.id === ui.selected && accessible(x, s.persona)) : undefined
 
   useEffect(() => {
     if (detailOnly) window.scrollTo({ top: 0 })
@@ -463,12 +501,21 @@ export function RequestList() {
   return (
     <div className="space-y-5">
       <Header />
-      {isManager(s.persona) && <ScopeSwitch />}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {isManager(s.persona) && <ScopeSwitch />}
+        <ViewSwitch />
+      </div>
       <Notices />
       <Filters />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,1fr)] lg:items-start">
+      <div className={cn("grid gap-5", calendar ? "2xl:grid-cols-[minmax(0,1.8fr)_minmax(340px,1fr)] 2xl:items-start" : "lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,1fr)] lg:items-start")}>
         <section aria-label={tt(team ? "team" : "my")} className="overflow-hidden rounded-2xl border bg-card shadow-soft">
-          {requests.length ? (
+          {calendar ? (
+            <TimeOffMonth
+              requests={filtered(s, { ...ui, filter: "all" })}
+              team={team}
+              renderRow={x => <RequestRow key={x.id} r={x} team={team} selected={x.id === current?.id} />}
+            />
+          ) : requests.length ? (
             <>
               <div aria-hidden className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto_auto] gap-x-3 border-b bg-muted/50 px-4 py-2 text-xs font-medium text-muted-foreground md:grid">
                 <span>{tt(team ? "employee" : "request")}</span>
@@ -484,8 +531,15 @@ export function RequestList() {
             <Empty hasRequests={!caughtUp && scopeRequests.length > 0} />
           )}
         </section>
-        <div className="hidden lg:block"><Detail r={current} /></div>
+        {!calendar && <div className="hidden lg:block"><Detail r={current} /></div>}
       </div>
+      <ResponsivePanel
+        open={!!dialogRequest}
+        onOpenChange={o => { if (!o) closeDetail() }}
+        title={dialogRequest ? (dialogRequest.emp === s.persona ? tt("viewRequest") : personName(dialogRequest.emp)) : ""}
+      >
+        {dialogRequest && <Detail r={dialogRequest} dialog />}
+      </ResponsivePanel>
       {canRequest && (
         <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-10 sm:hidden">
           <Button size="lg" className="w-full shadow-raised" onClick={startRequest}><Plus /> {tt("new")}</Button>

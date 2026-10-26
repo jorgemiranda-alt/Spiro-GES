@@ -84,6 +84,9 @@ export function timeOffSeed(): TimeOffState {
       request("TO-1046", "lukas", "pto", 9, 9, "Full Day", "Submitted", "", 0),
       request("TO-1027", "zofia", "pto", 11, 12, "Full Day", "Approved", "", 8),
       request("TO-1041", "ava", "sick", -5, -4, "Full Day", "Submitted", "Unable to work on these dates.", 0),
+      // Overlaps Ava's TO-1042 so the team calendar shows several people off on the same days.
+      request("TO-1038", "priya", "pto", 14, 16, "Full Day", "Approved", "", 6),
+      request("TO-1039", "marcus", "pto", 13, 16, "Full Day", "Approved", "", 9),
     ],
   }
 }

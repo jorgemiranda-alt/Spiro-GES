@@ -130,7 +130,7 @@ export const useDemo = create<Store>((set, get) => {
       try { localStorage.removeItem(STORE_KEY) } catch { /* ignore */ }
       const fresh = seed()
       const { persona, lang, view, settings } = get().s
-      fresh.persona = persona; fresh.lang = lang; fresh.view = view; fresh.settings.layout = settings.layout
+      fresh.persona = persona; fresh.lang = lang; fresh.view = view; fresh.settings.layout = settings.layout; fresh.settings.scheme = settings.scheme
       persist(fresh)
       set({ s: fresh, busy: [] })
     },

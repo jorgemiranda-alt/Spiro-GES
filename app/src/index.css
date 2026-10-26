@@ -94,6 +94,63 @@
   --nav-muted: #b3baa8;
 }
 
+/* Light color schemes from the Spiro Global Agency Palette (Brand Guidelines):
+   Citron, Cerulean, Cream, Fern, Marine, Cloud, Olive, Tangerine, Graphite.
+   The default above uses Graphite navigation with a Marine-teal primary on Cream.
+   Every scheme keeps a dark navigation so Citron highlights and nav text stay legible,
+   and keeps the status colors (success, warning, destructive) unchanged. */
+:root[data-scheme="marine"] {
+  --background: #f6f8f4;
+  --secondary: #e8f0ef;
+  --muted: #edf3f1;
+  --muted-foreground: #4f5d5c;
+  --accent: #e5efee;
+  --border: #dde7e4;
+  --input: #bfcfcc;
+  --primary: #1a4f5a;
+  --primary-soft: #e0eef0;
+  --ring: #2b7f8f;
+  --nav: #1a4f5a;
+  --nav-2: #245e6a;
+  --nav-foreground: #f3f9f8;
+  --nav-muted: #a8ccd1;
+}
+
+:root[data-scheme="fern"] {
+  --background: #f8f7ef;
+  --secondary: #eef0e5;
+  --muted: #f0f1e7;
+  --muted-foreground: #545b50;
+  --accent: #ebeee0;
+  --border: #e1e4d6;
+  --input: #c3c9b6;
+  --primary: #4d554b;
+  --primary-soft: #eef2df;
+  --ring: #5f7f1e;
+  --nav: #4d554b;
+  --nav-2: #5b6458;
+  --nav-foreground: #f6f7ef;
+  --nav-muted: #cbd1c1;
+}
+
+:root[data-scheme="cloud"] {
+  --background: #f4f7f9;
+  --card: #ffffff;
+  --secondary: #e8eef2;
+  --muted: #ecf1f4;
+  --muted-foreground: #4d5a62;
+  --accent: #e6edf1;
+  --border: #dbe3e9;
+  --input: #b9c8d2;
+  --primary: #1a4f5a;
+  --primary-soft: #e3edf3;
+  --ring: #2b7f8f;
+  --nav: #20271e;
+  --nav-2: #2f382c;
+  --nav-foreground: #f2f5f7;
+  --nav-muted: #b4c3cc;
+}
+
 :root.dark {
   color-scheme: dark;
   --background: #191c17;

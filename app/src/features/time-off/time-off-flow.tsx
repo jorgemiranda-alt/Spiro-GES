@@ -247,13 +247,21 @@ export function ReviewStep({ draft }: { draft: TimeOffDraft }) {
               </div>
             )}
           </div>
-        </aside>
-        <StickyActions className="lg:col-start-2 lg:flex-col">
-            <Button variant="outline" size="lg" className="flex-1 lg:order-2" onClick={editDraft} disabled={busy}>{tt("change")}</Button>
-            <Button size="lg" className="flex-[1.4] lg:order-1" onClick={() => void submitDraft()} disabled={busy}>
+          {/* Desktop: actions sit under the balance, matching the request step. */}
+          <div className="hidden flex-col gap-2 lg:flex">
+            <Button size="lg" onClick={() => void submitDraft()} disabled={busy}>
               {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Check />}
               {tt(busy ? "submitting" : "submit")}
             </Button>
+            <Button variant="ghost" size="lg" onClick={editDraft} disabled={busy}>{tt("change")}</Button>
+          </div>
+        </aside>
+        <StickyActions className="lg:hidden">
+          <Button variant="outline" size="lg" className="flex-1" onClick={editDraft} disabled={busy}>{tt("change")}</Button>
+          <Button size="lg" className="flex-[1.4]" onClick={() => void submitDraft()} disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Check />}
+            {tt(busy ? "submitting" : "submit")}
+          </Button>
         </StickyActions>
       </section>
     </div>

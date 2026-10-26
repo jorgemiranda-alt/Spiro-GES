@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AppShell } from "@/components/app/app-shell"
@@ -26,7 +26,9 @@ function ViewFallback() {
 export default function App() {
   useHashRouting()
   const view = useDemo(st => st.s.view)
+  const scheme = useDemo(st => st.s.settings.scheme) || "spiro"
   const mobile = useIsMobile()
+  useEffect(() => { document.documentElement.dataset.scheme = scheme }, [scheme])
   const View = views[view]
   const content = (
     <Suspense fallback={<ViewFallback />}>
