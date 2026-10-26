@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useT } from "@/lib/i18n"
+import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import { ensureOwner, selectRequest, setFilter, setScope, startRequest } from "./time-off-actions"
 import { Confirmation, RequestForm, ReviewStep } from "./time-off-flow"
@@ -50,7 +51,8 @@ export default function TimeOffView() {
   return (
     <div className="space-y-6">
       {content}
-      <footer className="flex flex-wrap justify-between gap-x-6 gap-y-1 border-t pt-4 text-xs text-muted-foreground">
+      {/* On phones the list's floating request button sits at the bottom right; keep this text clear of it. */}
+      <footer className={cn("flex flex-wrap justify-between gap-x-6 gap-y-1 border-t pt-4 text-xs text-muted-foreground", listShown && "max-sm:pr-20")}>
         <span>{tt("sample")}</span>
         {listShown && <span>{tt("latest", { time: fmtWhen(lastUpdated, lang) })}</span>}
       </footer>

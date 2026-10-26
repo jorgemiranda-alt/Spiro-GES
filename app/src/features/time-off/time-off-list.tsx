@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { CalendarDays, Check, ChevronLeft, ChevronRight, Info, List, Plus, RefreshCw, X } from "lucide-react"
+import { CalendarDays, Check, ChevronLeft, ChevronRight, Info, List, Plus, RefreshCw, SlidersHorizontal, X } from "lucide-react"
 import { JourneyTags, PageHeader } from "@/components/app/common"
 import { ResponsivePanel, useIsMobile } from "@/components/app/responsive-panel"
 import { Button } from "@/components/ui/button"
@@ -37,6 +37,7 @@ function Header() {
       title={<span id="to-screen-title" tabIndex={-1} className="outline-none">{tt("title")}</span>}
       tags={team ? "TO-05" : "TO-04"}
       description={tt(team ? "teamIntro" : "subtitle")}
+      hideDescriptionOnMobile
       actions={
         <>
           <RefreshButton className="max-sm:hidden" />
@@ -49,7 +50,7 @@ function Header() {
   )
 }
 
-function RefreshButton({ className }: { className?: string }) {
+function RefreshButton({ className, iconOnly }: { className?: string; iconOnly?: boolean }) {
   const { tt } = useT()
   const refreshing = useTimeOffUI(st => st.ui.refreshing)
   return (
@@ -61,7 +62,7 @@ function RefreshButton({ className }: { className?: string }) {
       onClick={() => void refresh()}
     >
       <RefreshCw className={cn(refreshing && "animate-spin")} aria-hidden />
-      <span className="truncate">{tt(refreshing ? "refreshing" : "refresh")}</span>
+      {!iconOnly && <span className="truncate">{tt(refreshing ? "refreshing" : "refresh")}</span>}
     </Button>
   )
 }
@@ -70,26 +71,29 @@ function ScopeSwitch() {
   const { tt } = useT()
   const scope = useTimeOffUI(st => st.ui.scope)
   const queue = useDemo(st => teamQueue(st.s))
-  const item = (value: "mine" | "team", label: string, count?: number) => (
+  const item = (value: "mine" | "team", label: string, short: string, count?: number) => (
     <button
       type="button"
       aria-pressed={scope === value}
+      aria-label={label}
       onClick={() => setScope(value)}
       className={cn(
-        "flex h-10 flex-1 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex-none",
+        "flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-10 sm:flex-none sm:gap-2 sm:px-4",
         scope === value ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      {label}
+      {/* Phones get the short label so the switch shares its row with List / Calendar. */}
+      <span className="truncate sm:hidden">{short}</span>
+      <span className="truncate max-sm:hidden">{label}</span>
       {count !== undefined && (
         <span className={cn("min-w-5 rounded-full px-1.5 text-xs leading-5 tabular-nums", count ? "bg-primary text-primary-foreground" : "bg-muted-foreground/15")}>{count}</span>
       )}
     </button>
   )
   return (
-    <div role="group" aria-label={tt("title")} className="flex w-full gap-1 rounded-xl bg-muted p-1 sm:w-fit">
-      {item("mine", tt("my"))}
-      {item("team", tt("team"), queue)}
+    <div role="group" aria-label={tt("title")} className="flex min-w-0 flex-1 gap-1 rounded-xl bg-muted p-1 sm:w-fit sm:flex-none">
+      {item("mine", tt("my"), tt("myShort"))}
+      {item("team", tt("team"), tt("teamShort"), queue)}
     </div>
   )
 }
@@ -102,17 +106,19 @@ function ViewSwitch() {
     <button
       type="button"
       aria-pressed={view === value}
+      aria-label={label}
+      title={label}
       onClick={() => patch({ view: value, detailOpen: false })}
       className={cn(
-        "flex h-10 flex-1 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex-none",
+        "flex h-9 w-10 items-center justify-center gap-2 rounded-lg text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-10 sm:w-auto sm:px-3",
         view === value ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <Icon className="size-4" aria-hidden /> {label}
+      <Icon className="size-4" aria-hidden /> <span className="max-sm:hidden">{label}</span>
     </button>
   )
   return (
-    <div role="group" aria-label={tt("viewAs")} className="flex w-full gap-1 rounded-xl bg-muted p-1 sm:ml-auto sm:w-fit">
+    <div role="group" aria-label={tt("viewAs")} className="ml-auto flex shrink-0 gap-1 rounded-xl bg-muted p-1">
       {item("list", List, tt("viewList"))}
       {item("calendar", CalendarDays, tt("viewCalendar"))}
     </div>
@@ -172,14 +178,14 @@ function Notices() {
 
 /* ---------- filters ---------- */
 
-function FilterSelect({ id, label, ariaLabel, value, options, onChange }: {
-  id: string; label: string; ariaLabel?: string; value: string; options: [string, string][]; onChange: (v: string) => void
+function FilterSelect({ id, label, ariaLabel, value, options, onChange, sheet }: {
+  id: string; label: string; ariaLabel?: string; value: string; options: [string, string][]; onChange: (v: string) => void; sheet?: boolean
 }) {
   return (
     <div className="min-w-0 space-y-1">
-      <label htmlFor={id} className="block text-xs font-medium text-muted-foreground">{label}</label>
+      <label htmlFor={id} className={cn("block font-medium", sheet ? "text-sm" : "text-xs text-muted-foreground")}>{label}</label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id={id} aria-label={ariaLabel} className="w-full sm:w-48"><SelectValue /></SelectTrigger>
+        <SelectTrigger id={id} aria-label={ariaLabel} className={sheet ? "!h-12 w-full text-base" : "w-48"}><SelectValue /></SelectTrigger>
         <SelectContent>
           {options.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
         </SelectContent>
@@ -196,38 +202,77 @@ function Filters() {
   const employees = [...new Set(s.timeOff.requests.filter(r => visibleIn(r, ui.scope, s.persona)).map(r => r.emp))]
   const datesSet = ui.from || ui.until
   const preview = (v: string) => validDate(v) ? tt("selectedDate", { date: fmtDate(v, lang, true) }) : ""
-  return (
-    <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
-      <FilterSelect id="to-filter-status" label={tt("status")} ariaLabel={tt("filter")} value={ui.filter}
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const active = [ui.filter !== "all", ui.typeFilter !== "all", team && ui.employeeFilter !== "all", !!datesSet].filter(Boolean).length
+
+  const selects = (sheet: boolean) => (
+    <>
+      <FilterSelect sheet={sheet} id={`to-${sheet ? "sheet" : "filter"}-status`} label={tt("status")} ariaLabel={tt("filter")} value={ui.filter}
         options={[["all", tt("all")], ...TO_STATUSES.map(x => [x, tt(x)] as [string, string])]} onChange={v => setFilter("filter", v)} />
-      <FilterSelect id="to-filter-type" label={tt("type")} ariaLabel={tt("typeFilter")} value={ui.typeFilter}
+      <FilterSelect sheet={sheet} id={`to-${sheet ? "sheet" : "filter"}-type`} label={tt("type")} ariaLabel={tt("typeFilter")} value={ui.typeFilter}
         options={[["all", tt("allTypes")], ...eligibleTypes(s.persona).map(x => [x.id, tt(x.label)] as [string, string])]} onChange={v => setFilter("typeFilter", v)} />
       {team && (
-        <FilterSelect id="to-filter-employee" label={tt("employee")} value={ui.employeeFilter}
+        <FilterSelect sheet={sheet} id={`to-${sheet ? "sheet" : "filter"}-employee`} label={tt("employee")} value={ui.employeeFilter}
           options={[["all", tt("allEmployees")], ...employees.map(id => [id, personName(id)] as [string, string])]} onChange={v => setFilter("employeeFilter", v)} />
       )}
+    </>
+  )
+  const dateFields = (sheet: boolean) => (["from", "until"] as const).map(key => (
+    <div key={key} className="min-w-0 space-y-1">
+      <label htmlFor={`to-${sheet ? "sheet" : "filter"}-${key}`} className="block text-sm font-medium">{tt(key === "from" ? "start" : "end")}</label>
+      <Input id={`to-${sheet ? "sheet" : "filter"}-${key}`} type="date" className={sheet ? "h-12 text-base" : "h-10"} value={ui[key]} aria-describedby={`to-${sheet ? "sheet" : "filter"}-${key}-preview`}
+        onChange={e => setFilter(key, e.target.value)} />
+      <p id={`to-${sheet ? "sheet" : "filter"}-${key}-preview`} className="min-h-5 text-xs text-muted-foreground">{preview(ui[key])}</p>
+    </div>
+  ))
+
+  // Phone: one Filters button opening a bottom sheet, the native pattern; it never runs off narrow screens.
+  // Both layouts render and CSS picks one at the same breakpoint as the header's refresh button.
+  return (
+    <>
+      <div className="flex items-center gap-2 sm:hidden">
+        <Button variant="outline" className={cn("h-10 flex-1 justify-start rounded-xl", active && "border-primary/50")} onClick={() => setSheetOpen(true)}>
+          <SlidersHorizontal aria-hidden /> {tt("filtersTitle")}
+          {active > 0 && <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-xs leading-5 text-primary-foreground tabular-nums">{active}</span>}
+        </Button>
+        <RefreshButton className="size-10 shrink-0 rounded-xl p-0" iconOnly />
+        <ResponsivePanel
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          title={tt("filtersTitle")}
+          footer={
+            <div className="flex w-full gap-2">
+              <Button variant="outline" size="lg" className="flex-1" disabled={!active} onClick={clearFilters}>{tt("clearFilters")}</Button>
+              <Button size="lg" className="flex-[1.4]" onClick={() => setSheetOpen(false)}>{tt("showResults")}</Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            {selects(true)}
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-semibold">{tt("dates")}</legend>
+              <div className="grid grid-cols-2 gap-3">{dateFields(true)}</div>
+            </fieldset>
+          </div>
+        </ResponsivePanel>
+      </div>
+    <div className="flex flex-wrap items-end gap-3 max-sm:hidden">
+      {selects(false)}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" className={cn("w-full justify-start sm:w-auto", datesSet && "border-primary text-primary")}>
+          <Button variant="outline" className={cn("justify-start", datesSet && "border-primary text-primary")}>
             <CalendarDays aria-hidden /> {tt("dates")}{datesSet ? " · 1" : ""}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-72 space-y-3">
-          {(["from", "until"] as const).map(key => (
-            <div key={key} className="space-y-1">
-              <label htmlFor={`to-filter-${key}`} className="block text-sm font-medium">{tt(key === "from" ? "start" : "end")}</label>
-              <Input id={`to-filter-${key}`} type="date" className="h-10" value={ui[key]} aria-describedby={`to-filter-${key}-preview`}
-                onChange={e => setFilter(key, e.target.value)} />
-              <p id={`to-filter-${key}-preview`} className="min-h-5 text-xs text-muted-foreground">{preview(ui[key])}</p>
-            </div>
-          ))}
+          {dateFields(false)}
           {datesSet && (
             <Button variant="ghost" size="sm" onClick={() => { setFilter("from", ""); setFilter("until", "") }}>{tt("clearFilters")}</Button>
           )}
         </PopoverContent>
       </Popover>
-      <RefreshButton className="w-full sm:hidden" />
     </div>
+    </>
   )
 }
 
@@ -499,9 +544,9 @@ export function RequestList() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className={cn("space-y-4 sm:space-y-5", canRequest && "max-sm:pb-16")}>
       <Header />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-2 sm:gap-3">
         {isManager(s.persona) && <ScopeSwitch />}
         <ViewSwitch />
       </div>
@@ -541,9 +586,15 @@ export function RequestList() {
         {dialogRequest && <Detail r={dialogRequest} dialog />}
       </ResponsivePanel>
       {canRequest && (
-        <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-10 sm:hidden">
-          <Button size="lg" className="w-full shadow-raised" onClick={startRequest}><Plus /> {tt("new")}</Button>
-        </div>
+        // Phone: a native-style floating action button above the tab bar; desktop uses the header button.
+        <button
+          type="button"
+          onClick={startRequest}
+          aria-label={tt("new")}
+          className="fixed right-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_6px_16px_-4px_rgb(26_40_38/0.45),0_2px_4px_rgb(26_40_38/0.2)] outline-none transition-transform active:scale-95 focus-visible:ring-4 focus-visible:ring-ring/50 sm:hidden"
+        >
+          <Plus className="size-6" strokeWidth={2.4} aria-hidden />
+        </button>
       )}
       <DecisionDialog />
     </div>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { Copy, Eye, EyeOff, Plus, Save, SlidersHorizontal } from "lucide-react"
+import { Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Highlightable, JourneyTags, PageHeader } from "@/components/app/common"
@@ -51,14 +52,19 @@ function HoursInput({ row, i, days, editable, v, onHours, className }: RowProps 
   )
 }
 
-function TaskSelect({ row, editable, invalid }: { row: GridRow; editable: boolean; invalid: boolean }) {
+function TaskSelect({ row, editable, invalid, quiet }: { row: GridRow; editable: boolean; invalid: boolean; quiet?: boolean }) {
   const setTask = useDemo(st => st.setGridTask)
   const { t } = useT()
   const p = PROJECTS[row.proj]
-  if (p.tasks.length < 2 && !p.taskReq) return row.task ? <MetaTag>{t("task")}: {row.task}</MetaTag> : null
+  if (p.tasks.length < 2 && !p.taskReq) return row.task ? (quiet ? <span className="truncate text-sm text-muted-foreground">{row.task}</span> : <MetaTag>{t("task")}: {row.task}</MetaTag>) : null
   return (
     <Select value={row.task} onValueChange={v => setTask(row.id, v)} disabled={!editable}>
-      <SelectTrigger size="sm" aria-label={`${row.proj} ${t("task")}`} aria-invalid={invalid || undefined} className="h-8 max-w-full rounded-md text-xs data-[size=sm]:h-8">
+      <SelectTrigger size="sm" aria-label={`${row.proj} ${t("task")}`} aria-invalid={invalid || undefined} className={cn(
+        "max-w-full",
+        quiet
+          ? "-ml-2 h-8 w-auto min-w-0 gap-1 border-transparent *:data-[slot=select-value]:!block *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:truncate bg-transparent px-2 text-sm text-muted-foreground shadow-none hover:bg-muted hover:text-foreground data-[size=sm]:h-8"
+          : "h-8 rounded-md text-xs data-[size=sm]:h-8",
+      )}>
         <SelectValue placeholder={`Choose a ${t("task").toLowerCase()}`} />
       </SelectTrigger>
       <SelectContent>{p.tasks.map(x => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
@@ -66,9 +72,9 @@ function TaskSelect({ row, editable, invalid }: { row: GridRow; editable: boolea
   )
 }
 
-function ClassicGrid({ rows, days, editable, v, onHours, showWeekend }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; showWeekend: boolean }) {
+function ClassicGrid({ rows, days, editable, v, onHours }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"] }) {
   const { lang, t, at } = useT()
-  const cols = days.map((d, i) => ({ d, i })).filter(({ i }) => showWeekend || i < 5)
+  const cols = days.map((d, i) => ({ d, i }))
   return (
     <div className="overflow-hidden rounded-2xl border bg-card shadow-soft">
       <div className="overflow-x-auto">
@@ -120,10 +126,9 @@ function ClassicGrid({ rows, days, editable, v, onHours, showWeekend }: { rows: 
   )
 }
 
-function ModernCards({ rows, days, editable, v, onHours, showWeekend }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; showWeekend: boolean }) {
+function ModernCards({ rows, days, editable, v, onHours }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"] }) {
   const setHidden = useDemo(st => st.setProjectHidden)
   const { lang, at } = useT()
-  const idx = days.map((_, i) => i).filter(i => showWeekend || i < 5)
   return (
     <ul className="space-y-3">
       {rows.map(r => {
@@ -135,10 +140,8 @@ function ModernCards({ rows, days, editable, v, onHours, showWeekend }: { rows: 
               <div className="min-w-0 flex-1">
                 <h3 className="text-[15px] leading-snug font-semibold"><span className="tabular-nums">{r.proj}</span> · {p.name}</h3>
                 <p className="truncate text-sm text-muted-foreground">{[p.client, p.show !== "—" && p.show].filter(Boolean).join(" · ")}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <StatusPill tone={rowTone(r.status)}>{r.status}</StatusPill>
-                  <TaskSelect row={r} editable={ed} invalid={v.badTask.has(r.id)} />
-                </div>
+                {/* Draft is every new line's state, so only a decision (returned, approved…) earns a pill. */}
+                {r.status !== "Draft" && <StatusPill tone={rowTone(r.status)} className="mt-2">{r.status}</StatusPill>}
               </div>
               <label className="flex shrink-0 flex-col items-center gap-0.5 text-[11px] font-medium text-muted-foreground sm:flex-row-reverse sm:gap-2 sm:text-sm sm:text-foreground">
                 <span>{at("show")}</span>
@@ -153,20 +156,28 @@ function ModernCards({ rows, days, editable, v, onHours, showWeekend }: { rows: 
               </label>
             </div>
             {r.note && <Notice tone="danger" className="mt-3"><b>Note from approver:</b> {r.note}</Notice>}
-            <div className={cn("mt-4 grid gap-2", showWeekend ? "grid-cols-4 sm:grid-cols-8" : "grid-cols-6")}>
-              {idx.map(i => (
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1">
+                <TaskSelect row={r} editable={ed} invalid={v.badTask.has(r.id)} quiet />
+              </div>
+              <p className="shrink-0 text-sm text-muted-foreground">
+                {at("total")} <output className="ml-1 text-base font-semibold text-foreground tabular-nums">{fmtH(total, lang)} h</output>
+              </p>
+            </div>
+            {/* The whole week, Monday to Sunday, in one row — like a native week strip. */}
+            <div className="mt-2 grid grid-cols-7 gap-1 sm:gap-2">
+              {days.map((d, i) => (
                 <div key={i} className="min-w-0 space-y-1">
-                  <div className={cn("relative text-center text-xs font-medium", days[i] === todayStr() ? "text-primary" : "text-muted-foreground")}>
-                    {fmtWeekday(days[i], lang)}<span className="hidden sm:inline"> {parseYmd(days[i]).getDate()}</span>
-                    {days[i] === todayStr() && <span className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-primary" aria-label="Today" />}
+                  <div className={cn(
+                    "flex flex-col items-center text-[11px] leading-tight font-medium sm:flex-row sm:justify-center sm:gap-1 sm:text-xs",
+                    d === todayStr() ? "text-primary" : i > 4 ? "text-muted-foreground/70" : "text-muted-foreground",
+                  )}>
+                    <span>{fmtWeekday(d, lang)}</span>
+                    <span className={cn("tabular-nums", d === todayStr() && "rounded-full bg-primary px-1.5 text-primary-foreground")}>{parseYmd(d).getDate()}</span>
                   </div>
-                  <HoursInput row={r} i={i} days={days} editable={ed} v={v} onHours={onHours} />
+                  <HoursInput row={r} i={i} days={days} editable={ed} v={v} onHours={onHours} className={cn("px-0", i > 4 && "bg-muted/40")} />
                 </div>
               ))}
-              <div className="min-w-0 space-y-1">
-                <div className="text-center text-xs font-medium text-muted-foreground">{at("total")}</div>
-                <output className="flex h-11 items-center justify-center rounded-lg bg-muted text-base font-semibold tabular-nums">{fmtH(total, lang)}</output>
-              </div>
             </div>
           </li>
         )
@@ -193,9 +204,6 @@ export default function ProjectHoursView() {
   const [manageOpen, setManageOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [showHidden, setShowHidden] = useState(false)
-  const weekendHasHours = g.rows.some(r => num(r.h[5]) || num(r.h[6]))
-  const [weekend, setWeekend] = useState(weekendHasHours)
-  const showWeekend = weekend || weekendHasHours
 
   useEffect(() => { setDirty(new Set()); setStrict(false) }, [emp, off])
 
@@ -257,6 +265,7 @@ export default function ProjectHoursView() {
         tags="GR-01,GR-02"
         description={isSal ? "Enter the hours you spent on each project this week. Salaried time is recorded without approval." : "Enter your hours per project and day. Saved rows go to the project approver."}
         actions={<LayoutToggle />}
+        hideDescriptionOnMobile
       />
       <WeekNav min={-1} max={1} meta={g.savedAt ? `${at("saved")} ${g.savedAt}` : `Loaded ${fmtClock(hm(new Date()), lang)}`} />
 
@@ -272,7 +281,30 @@ export default function ProjectHoursView() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-lg font-semibold">{at("assignedProjects")} <JourneyTags ids="GR-03,GR-04" /></h2>
-        <div className="no-scrollbar -mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
+        {/* Phone: one primary button plus a "more" menu, so nothing runs off the screen. */}
+        <div className="flex w-full gap-2 sm:hidden">
+          <Button className="h-10 flex-1" onClick={() => setAddOpen(true)} disabled={locked}><Plus /> {at("addProject")}</Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="size-10" aria-label={at("moreActions")}><MoreHorizontal /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              {modern && hiddenCodes.length > 0 && (
+                <DropdownMenuItem onSelect={() => setShowHidden(x => !x)}>
+                  {showHidden ? <EyeOff /> : <Eye />} {showHidden ? at("hideHidden") : at("showHidden", { n: hiddenCodes.length })}
+                </DropdownMenuItem>
+              )}
+              {!modern && (
+                <DropdownMenuItem onSelect={() => setManageOpen(true)}>
+                  <SlidersHorizontal /> {at("manageProjects")}
+                  {hiddenCount(s, emp) > 0 && <span className="ml-auto text-xs text-muted-foreground tabular-nums">{hiddenCount(s, emp)} {at("hidden").toLowerCase()}</span>}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={copyLastWeek} disabled={locked}><Copy /> {at("copyLastWeek")}</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="flex flex-wrap gap-2 max-sm:hidden">
           {modern && hiddenCodes.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setShowHidden(x => !x)} aria-expanded={showHidden}>
               {showHidden ? <EyeOff /> : <Eye />} {showHidden ? at("hideHidden") : at("showHidden", { n: hiddenCodes.length })}
@@ -280,12 +312,12 @@ export default function ProjectHoursView() {
           )}
           {!modern && (
             <Button variant="outline" size="sm" onClick={() => setManageOpen(true)}>
-              <SlidersHorizontal /> {at("manageProjects")}{hiddenCount(s, emp) ? ` · ${hiddenCount(s, emp)} ${at("hidden").toLowerCase()}` : ""}
+              <SlidersHorizontal /> {at("manageProjects")}
+              {hiddenCount(s, emp) > 0 && (
+                <span className="rounded-full bg-muted px-1.5 text-xs leading-5 tabular-nums" aria-label={`${hiddenCount(s, emp)} ${at("hidden").toLowerCase()}`}>{hiddenCount(s, emp)}</span>
+              )}
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => setWeekend(x => !x)} disabled={weekendHasHours} aria-pressed={showWeekend}>
-            {at("weekend")}
-          </Button>
           <Button variant="outline" size="sm" onClick={copyLastWeek} disabled={locked}><Copy /> {at("copyLastWeek")}</Button>
           <Button size="sm" onClick={() => setAddOpen(true)} disabled={locked}><Plus /> {at("addProject")}</Button>
         </div>
@@ -293,9 +325,13 @@ export default function ProjectHoursView() {
 
       <Highlightable hl="grid">
         {modern ? (
-          <ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} showWeekend={showWeekend} />
+          <ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} />
         ) : (
-          <ClassicGrid rows={visible} days={days} editable={editable} v={v} onHours={onHours} showWeekend={showWeekend} />
+          <>
+            {/* Phone: the wide grid can't fit, so Classic shows the same week cards as Modern. */}
+            <div className="sm:hidden"><ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} /></div>
+            <div className="max-sm:hidden"><ClassicGrid rows={visible} days={days} editable={editable} v={v} onHours={onHours} /></div>
+          </>
         )}
         {modern && !visible.length && (
           <div className="rounded-2xl border border-dashed bg-card px-6 py-10 text-center">
@@ -344,7 +380,7 @@ export default function ProjectHoursView() {
       <AddRowPanel
         open={addOpen}
         onOpenChange={setAddOpen}
-        onAdded={id => setTimeout(() => document.querySelector(`[data-row="${id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 80)}
+        onAdded={id => setTimeout(() => [...document.querySelectorAll<HTMLElement>(`[data-row="${id}"]`)].find(el => el.offsetParent)?.scrollIntoView({ behavior: "smooth", block: "center" }), 80)}
       />
     </div>
   )

@@ -127,11 +127,11 @@ export function TimeOffMonth({ requests, team, renderRow }: {
   const chip = (r: TimeOffRequest) => (team ? personName(r.emp).split(" ")[0] : typeLabel(lang, r.type))
 
   return (
-    <div className="space-y-4 p-3 sm:p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold capitalize" aria-live="polite">{label}</h2>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={() => patch({ viewMonth: today.slice(0, 7), viewDay: today })}>{tt("thisMonth")}</Button>
+    <div className="space-y-3 p-2.5 sm:space-y-4 sm:p-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="truncate text-base font-semibold capitalize" aria-live="polite">{label}</h2>
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+          <Button variant="ghost" size="sm" className="text-primary sm:border sm:border-input sm:text-foreground" onClick={() => patch({ viewMonth: today.slice(0, 7), viewDay: today })}>{tt("thisMonth")}</Button>
           <Button variant="ghost" size="icon" aria-label={tt("previousMonth")} onClick={() => patch({ viewMonth: shiftMonth(month, -1) })}><ChevronLeft /></Button>
           <Button variant="ghost" size="icon" aria-label={tt("nextMonth")} onClick={() => patch({ viewMonth: shiftMonth(month, 1) })}><ChevronRight /></Button>
         </div>
@@ -158,7 +158,7 @@ export function TimeOffMonth({ requests, team, renderRow }: {
                 aria-selected={selected}
                 onClick={pick}
                 className={cn(
-                  "relative flex min-h-14 min-w-0 cursor-pointer flex-col gap-1 rounded-lg border p-1 transition-colors sm:min-h-24 sm:p-1.5",
+                  "relative flex aspect-square min-w-0 cursor-pointer flex-col gap-1 rounded-lg border p-1 sm:aspect-auto transition-colors sm:min-h-24 sm:p-1.5",
                   weekend ? "bg-muted/40" : "bg-card hover:bg-muted/60",
                   busy && "border-destructive/50 bg-destructive-soft/60",
                   selected && "border-primary ring-2 ring-primary/30",

@@ -37,7 +37,7 @@ export function LayoutToggle({ className, compact = false }: { className?: strin
         )
       })}
     </div>
-    {!compact && <p className="text-xs text-muted-foreground" aria-live="polite">{at(layout === "classic" ? "classicCaption" : "modernCaption")}</p>}
+    {!compact && <p className="text-xs text-muted-foreground max-sm:hidden" aria-live="polite">{at(layout === "classic" ? "classicCaption" : "modernCaption")}</p>}
     </div>
   )
 }

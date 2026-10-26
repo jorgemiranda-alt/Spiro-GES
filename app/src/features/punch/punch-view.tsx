@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Highlightable, JourneyTags, PageHeader } from "@/components/app/common"
 import { Notice } from "@/components/app/status"
 import { PROJECTS } from "@/data/reference-data"
-import { fmtClock, fmtDay, fmtH, todayStr, tsDate, tsTime } from "@/lib/dates"
+import { fmtClock, fmtDay, fmtH, nowTs, todayStr, tsDate, tsTime } from "@/lib/dates"
 import { assigned, buildDay, isPunchOdooHidden, laborText, liveState, validateProject } from "@/lib/engine"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -58,13 +58,31 @@ export default function PunchView() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("punch")} tags="PU-01,PU-02,PU-06" />
+      {/* Phone: the tab bar already names the screen; the title stays for screen readers. */}
+      <PageHeader title={t("punch")} tags="PU-01,PU-02,PU-06" className="max-sm:sr-only" />
       {s.settings.simDuplicatePunchError && (
         <Notice tone="danger"><b>UKG duplicate-punch error simulation is armed.</b> The next Punch In or Punch Out will show the error returned by UKG.</Notice>
       )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
-        <Highlightable hl="punch-in" className="space-y-5 rounded-3xl border bg-card p-5 shadow-soft sm:p-6">
-          <div className="flex items-center gap-4">
+        {/* Phone: no card around the clock; the page itself is the time clock. */}
+        <Highlightable hl="punch-in" className="space-y-5 sm:rounded-3xl sm:border sm:bg-card sm:p-6 sm:shadow-soft">
+          {/* Phone: a time-clock header — live time, status, today's hours — like a native clock-in app. */}
+          <div className="flex flex-col items-center gap-2 pt-1 text-center sm:hidden">
+            <span className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold",
+              L.st === "in" ? "bg-success-soft text-success" : L.st === "brk" ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground",
+            )}>
+              <span className={cn("size-2 rounded-full", L.st === "in" ? "animate-pulse bg-success motion-reduce:animate-none" : L.st === "brk" ? "bg-warning" : "bg-muted-foreground")} aria-hidden />
+              <span role="status">{statusText}</span>
+            </span>
+            <time className="text-[3.25rem] leading-none font-semibold tracking-tight tabular-nums">{fmtClock(nowTs().slice(11), lang)}</time>
+            <p className="text-sm text-muted-foreground">{fmtDay(todayStr(), lang)}{statusDetail ? ` · ${statusDetail.replace(/^ · /, "")}` : ""}</p>
+            <p className="mt-1 rounded-xl bg-card px-4 py-2 text-sm shadow-soft ring-1 ring-border">
+              {t("today")} <b className="ml-1 text-base tabular-nums">{fmtH(today.daily, lang)} h</b>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 max-sm:hidden">
             <span className={cn(
               "relative grid size-14 shrink-0 place-items-center rounded-2xl",
               L.st === "in" ? "bg-success-soft text-success" : L.st === "brk" ? "bg-warning-soft text-warning" : "bg-muted text-muted-foreground",
@@ -73,7 +91,7 @@ export default function PunchView() {
               {L.st === "in" && <span className="absolute -top-0.5 -right-0.5 size-3 animate-pulse rounded-full border-2 border-card bg-success motion-reduce:animate-none" aria-hidden />}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xl font-semibold" role="status">{statusText}</p>
+              <p className="text-xl font-semibold">{statusText}</p>
               <p className="text-sm text-muted-foreground">{statusDetail}</p>
             </div>
             <div className="text-right">
@@ -103,7 +121,12 @@ export default function PunchView() {
             </div>
           )}
 
-          <div className={cn("grid gap-3", L.st !== "out" && "grid-cols-2")}>
+          {/* Phone: actions dock above the tab bar, within thumb reach, whatever the scroll position. */}
+          <div className={cn(
+            "grid gap-3",
+            L.st !== "out" && "grid-cols-2",
+            "max-sm:sticky max-sm:bottom-[calc(4.25rem+env(safe-area-inset-bottom))] max-sm:z-10 max-sm:-mx-4 max-sm:border-t max-sm:bg-background/95 max-sm:px-4 max-sm:py-3 max-sm:backdrop-blur-md",
+          )}>
             {L.st === "out" ? (
               <Button size="lg" className="h-14 rounded-2xl text-lg" onClick={punchIn} disabled={busy} aria-busy={busy || undefined}>
                 <LogIn className="size-5" /> {busy ? "Sending to UKG…" : t("punchIn")}

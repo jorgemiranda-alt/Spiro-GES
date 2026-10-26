@@ -21,11 +21,11 @@ export default function TimecardView() {
   const modern = s.settings.layout === "modern"
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <PageHeader
         title={t("timecard")}
         tags="TC-01,TC-02"
-        hideDescriptionOnMobile={modern}
+        hideDescriptionOnMobile
         description={modern ? "Your time by project. Pick a day, then check start, end and break for each project." : at("readOnlyNote")}
         actions={<LayoutToggle />}
       />

@@ -74,6 +74,7 @@ export const APP_COPY: Record<string, [string, string, string, string, string]> 
   pdPeople: ["{n} people", "{n} personnes", "{n} Personen", "{n} personen", "{n} osób"],
   pdSubtasks: ["{n} subtasks", "{n} sous-tâches", "{n} Unteraufgaben", "{n} subtaken", "{n} podzadań"],
   pdYou: ["You", "Vous", "Sie", "Jij", "Ty"],
+  moreActions: ["More actions", "Plus d’actions", "Weitere Aktionen", "Meer acties", "Więcej działań"],
   pdAttention: ["Needs attention", "À surveiller", "Braucht Aufmerksamkeit", "Vraagt aandacht", "Wymaga uwagi"],
   pdAttentionHelp: ["People at 75% or more of their scoped hours. Talk scope, workload or funding now, not after the fact.", "Personnes à 75 % ou plus de leurs heures prévues. Parlez périmètre, charge ou financement maintenant.", "Personen ab 75 % ihrer geplanten Stunden. Umfang, Auslastung oder Budget jetzt besprechen, nicht im Nachhinein.", "Personen op 75% of meer van hun geplande uren. Bespreek scope, werkdruk of budget nu, niet achteraf.", "Osoby z wykorzystaniem 75% lub więcej planowanych godzin. Omów zakres, obciążenie lub budżet teraz."],
   pdNoneAtRisk: ["Everyone is under 75% of their scoped hours.", "Tout le monde est sous 75 % de ses heures prévues.", "Alle liegen unter 75 % ihrer geplanten Stunden.", "Iedereen zit onder 75% van de geplande uren.", "Wszyscy są poniżej 75% planowanych godzin."],

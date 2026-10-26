@@ -55,6 +55,7 @@ function Cell({ children, details, className, label }: { children: React.ReactNo
   )
 }
 
+/** Exceptions (late in, early out, short break…) are deliberately not shown on My Timecard. */
 export function ClassicTimecard({ emp, days, locked }: { emp: string; days: Day[]; locked: boolean }) {
   const { lang, t } = useT()
   const today = todayStr()
@@ -62,21 +63,17 @@ export function ClassicTimecard({ emp, days, locked }: { emp: string; days: Day[
 
   const rows = days.flatMap(d => {
     const segs: (Segment | null)[] = d.segs.length ? d.segs : [null]
-    const codes = new Set(d.exc.map(e => e.code))
     const dow = parseYmd(d.date).getDay(), weekend = dow === 0 || dow === 6, isToday = d.date === today
     return segs.map((s, i) => {
       const first = i === 0, last = i === segs.length - 1
       const inP = s?.in.p, outP = s?.out?.p
       const labor = (s && (s.labor || laborDefaults(emp))) || {}
       const lob = labor.task ? laborTaskName(labor.task) : ""
-      const exceptionsFor = (p: Punch) => d.exc.filter(x => x.pid === p.id || (!x.pid && x.code === "UNSCHEDULED")).map(x => t(x.label))
       const punchDetails = (p: Punch): DetailsProps => ({
         title: "Punch details",
-        rows: [["Date", fmtDay(d.date, lang)], ["Time", fmtClock(tsTime(p.t), lang)], ["Punch", punchLabel(p)], ...(exceptionsFor(p).length ? [["Exceptions", exceptionsFor(p).join(", ")] as [string, string]] : [])],
+        rows: [["Date", fmtDay(d.date, lang)], ["Time", fmtClock(tsTime(p.t), lang)], ["Punch", punchLabel(p)]],
         labor,
       })
-      const warnIn = s && ((first && codes.has("LATE_IN")) || d.exc.some(e => e.code === "SHORT_BREAK" && e.pid === inP?.id))
-      const warnOut = s && last && outP && d.exc.some(e => e.code === "EARLY_OUT" && e.pid === outP.id)
       const transferLabel = [s?.proj, s?.task, lob && lob !== s?.task ? lob : ""].filter(Boolean).join(" · ") || t("noProject")
       return (
         <tr
@@ -98,7 +95,7 @@ export function ClassicTimecard({ emp, days, locked }: { emp: string; days: Day[
           </th>
           <td className="px-1 py-1">
             {s && inP && (
-              <Cell label={`${punchLabel(inP)} ${fmtClock(s.in.t, lang)}. Open punch details`} details={punchDetails(inP)} className={cn(warnIn && "bg-warning-soft text-warning")}>
+              <Cell label={`${punchLabel(inP)} ${fmtClock(s.in.t, lang)}. Open punch details`} details={punchDetails(inP)}>
                 {fmtClock(s.in.t, lang)}
                 {s.in.kind === "Break end" && <span className="text-xs text-muted-foreground">(brk)</span>}
               </Cell>
@@ -125,7 +122,7 @@ export function ClassicTimecard({ emp, days, locked }: { emp: string; days: Day[
             ) : s.missing ? (
               <StatusPill tone="danger" className="ml-2">{t("missed")}</StatusPill>
             ) : s.out && outP ? (
-              <Cell label={`${punchLabel(outP)} ${fmtClock(s.out.t, lang)}. Open punch details`} details={punchDetails(outP)} className={cn(warnOut && "bg-warning-soft text-warning")}>
+              <Cell label={`${punchLabel(outP)} ${fmtClock(s.out.t, lang)}. Open punch details`} details={punchDetails(outP)}>
                 {fmtClock(s.out.t, lang)}
                 {s.out.kind === "Break" && <span className="text-xs text-muted-foreground">(brk)</span>}
               </Cell>
@@ -164,25 +161,36 @@ export function ClassicTimecard({ emp, days, locked }: { emp: string; days: Day[
   )
 }
 
-/** Phones: the same punch segments as a day-grouped list, so nothing scrolls sideways. */
+/** Phones: one grouped list, like a native settings-style table. Days with punches show their segments;
+    days without collapse to a single quiet line, so a week fits in about one screen. */
 function ClassicDayList({ days }: { days: Day[] }) {
   const { lang, t } = useT()
   const today = todayStr()
+  const total = days[6]?.cum || 0
   return (
-    <ol className="space-y-3 sm:hidden">
+    <div className="space-y-3 sm:hidden">
+      <div className="rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-soft">
+        <div>
+          <div className="text-xs text-primary-foreground/75">{t("cum")}</div>
+          <div className="text-2xl leading-tight font-semibold tabular-nums">{fmtH(total, lang)} <span className="text-base font-medium">h</span></div>
+        </div>
+      </div>
+    <ol className="divide-y overflow-hidden rounded-2xl border bg-card shadow-soft">
       {days.map(d => (
-        <li key={d.date} className={cn("overflow-hidden rounded-2xl border bg-card shadow-soft", d.date === today && "border-primary/50")}>
-          <div className="flex items-center justify-between gap-3 border-b bg-muted/50 px-4 py-2.5">
-            <span className="flex items-center gap-2 font-semibold">
+        <li key={d.date} className={cn(d.date === today && "bg-primary-soft/40")}>
+          <div className={cn("flex min-h-12 items-center justify-between gap-3 px-4", d.segs.length ? "pt-3 pb-1" : "py-2")}>
+            <span className={cn("flex items-center gap-2", d.segs.length ? "font-semibold" : "text-muted-foreground")}>
               {fmtDay(d.date, lang)}
               {d.date === today && <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-medium text-primary-foreground">{t("today")}</span>}
             </span>
-            <span className="text-sm font-semibold tabular-nums">{d.daily ? `${fmtH(d.daily, lang)} h` : "—"}</span>
+            {d.segs.length
+              ? <span className="text-sm font-semibold tabular-nums">{fmtH(d.daily, lang)} h</span>
+              : <span className="text-sm text-muted-foreground">{d.sched && d.date < today ? t("absent") : "—"}</span>}
           </div>
-          {d.segs.length ? (
-            <ul className="divide-y">
+          {d.segs.length > 0 && (
+            <ul className="pb-2">
               {d.segs.map((s, i) => (
-                <li key={i} className="flex items-start gap-3 px-4 py-3">
+                <li key={i} className="flex items-start gap-3 px-4 py-2">
                   <div className="flex w-[78px] shrink-0 flex-col text-sm font-medium tabular-nums">
                     <span>{fmtClock(s.in.t, lang)}</span>
                     {s.out ? <span className="text-muted-foreground">{fmtClock(s.out.t, lang)}</span> : <span className={s.live ? "text-success" : "text-destructive"}>{s.live ? "now" : t("missed")}</span>}
@@ -198,15 +206,11 @@ function ClassicDayList({ days }: { days: Day[] }) {
                 </li>
               ))}
             </ul>
-          ) : <p className="px-4 py-3 text-sm text-muted-foreground">{d.sched && d.date < today ? t("absent") : "No punches"}</p>}
-          {d.exc.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 border-t px-4 py-2.5">
-              {[...new Set(d.exc.map(e => e.label))].map(l => <StatusPill key={l} tone={d.exc.find(e => e.label === l)?.sev === "err" ? "danger" : "warning"}>{t(l)}</StatusPill>)}
-            </div>
           )}
         </li>
       ))}
     </ol>
+    </div>
   )
 }
 
