@@ -32,9 +32,13 @@ interface Store {
   addOdooProject: (code: string) => boolean
   setGridHours: (rowId: string, day: number, value: string) => void
   setGridTask: (rowId: string, task: string) => void
+  /** Adds another task line to a project already on the week; returns the new line id. */
+  addGridTask: (proj: string, task?: string) => string | null
+  /** Keeps the week's entries as a draft without sending anything to UKG. */
+  saveGridDraft: () => void
   setProjectHidden: (code: string, hide: boolean) => void
   addGridRow: (row: { proj: string; task: string; paycode: string; tc: string; func: string }) => string | null
-  saveGrid: (dirty: Set<string>) => { ok: boolean; message: string }
+  saveGrid: () => { ok: boolean; message: string }
   setModernEntry: (date: string, proj: string, patch: Partial<ModernEntry>, base: ModernEntry) => void
   submitModernWeek: () => void
 }
@@ -241,11 +245,25 @@ export const useDemo = create<Store>((set, get) => {
 
     setGridHours: (rowId, day, value) => mutate(s => {
       const r = ensureGrid(s, s.persona, s.period).rows.find(x => x.id === rowId)
-      if (r) r.h[day] = value.trim()
+      if (r) { r.h[day] = value.trim(); r.unsent = true }
     }),
     setGridTask: (rowId, task) => mutate(s => {
       const r = ensureGrid(s, s.persona, s.period).rows.find(x => x.id === rowId)
-      if (r) r.task = task
+      if (r) { r.task = task; r.unsent = true }
+    }),
+    addGridTask: (proj, chosen) => {
+      const s = get().s, g = gridWeekOf(s, s.persona, s.period)
+      const used = new Set(g.rows.filter(r => r.proj === proj && !r.archived).map(r => r.task))
+      const task = chosen && !used.has(chosen) ? chosen : PROJECTS[proj].tasks.find(t => !used.has(t))
+      if (task === undefined) return null
+      const id = `r${s.seq + 1}`
+      mutate(x => {
+        ensureGrid(x, x.persona, x.period).rows.push({ id: `r${++x.seq}`, proj, task, h: Array(7).fill(""), status: "Draft", note: "", archived: false })
+      })
+      return id
+    },
+    saveGridDraft: () => mutate(s => {
+      ensureGrid(s, s.persona, s.period).draftAt = new Date().toLocaleTimeString(locale(s.lang), { hour: "2-digit", minute: "2-digit" })
     }),
     /* Hiding drops empty rows from the current week; showing adds one back. */
     setProjectHidden: (code, hide) => mutate(s => {
@@ -276,7 +294,7 @@ export const useDemo = create<Store>((set, get) => {
     },
 
     /** Save sends the rows changed since the last save. */
-    saveGrid: dirty => {
+    saveGrid: () => {
       const s = get().s, emp = s.persona, g = gridWeekOf(s, emp, s.period)
       const days = periodDays(s.period)
       const v = gridValidate(g, true, days, d => new Date(d).toLocaleDateString(locale(s.lang), { weekday: "short", day: "numeric" }))
@@ -286,10 +304,11 @@ export const useDemo = create<Store>((set, get) => {
       mutate(x => {
         const week = ensureGrid(x, emp, x.period)
         week.rows.forEach(r => {
-          if (r.archived || r.status === "Approved" || !dirty.has(r.id)) return
+          if (r.archived || r.status === "Approved" || !r.unsent) return
           const dayHours = r.h.map(h => num(h) || 0), hrs = dayHours.reduce((a, b) => a + b, 0)
-          if (!hrs) return
+          if (!hrs) { r.unsent = false; return }
           n++
+          r.unsent = false
           r.status = isSal ? "Recorded" : "Submitted"
           r.note = ""
           if (!isSal) {

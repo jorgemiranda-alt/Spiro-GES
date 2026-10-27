@@ -34,6 +34,8 @@ export interface GridRow {
   status: RowStatus
   note: string
   archived: boolean
+  /** Changed since it was last submitted; kept on the line so a draft survives leaving the screen. */
+  unsent?: boolean
   paycode?: string
   tc?: string
   func?: string
@@ -43,6 +45,8 @@ export interface GridWeek {
   rows: GridRow[]
   auto?: boolean
   savedAt?: string
+  /** When the employee last chose Save draft (nothing is sent to UKG). */
+  draftAt?: string
 }
 
 export interface Approval {

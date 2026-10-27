@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, SlidersHorizontal } from "lucide-react"
+import { Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, Send, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -52,11 +52,15 @@ function HoursInput({ row, i, days, editable, v, onHours, className }: RowProps 
   )
 }
 
-function TaskSelect({ row, editable, invalid, quiet }: { row: GridRow; editable: boolean; invalid: boolean; quiet?: boolean }) {
+function TaskSelect({ row, siblings = [], editable, invalid, quiet }: { row: GridRow; siblings?: GridRow[]; editable: boolean; invalid: boolean; quiet?: boolean }) {
   const setTask = useDemo(st => st.setGridTask)
   const { t } = useT()
   const p = PROJECTS[row.proj]
+  // A task already on another line of this project is not offered twice.
+  const options = p.tasks.filter(x => x === row.task || !siblings.some(r => r.id !== row.id && r.task === x))
   if (p.tasks.length < 2 && !p.taskReq) return row.task ? (quiet ? <span className="truncate text-sm text-muted-foreground">{row.task}</span> : <MetaTag>{t("task")}: {row.task}</MetaTag>) : null
+  // Each line is one task, chosen when the line is added; only a line still missing its task needs a picker.
+  if (row.task) return <span className={cn("truncate", quiet ? "text-sm font-medium" : "font-medium")}>{row.task}</span>
   return (
     <Select value={row.task} onValueChange={v => setTask(row.id, v)} disabled={!editable}>
       <SelectTrigger size="sm" aria-label={`${row.proj} ${t("task")}`} aria-invalid={invalid || undefined} className={cn(
@@ -67,12 +71,37 @@ function TaskSelect({ row, editable, invalid, quiet }: { row: GridRow; editable:
       )}>
         <SelectValue placeholder={`Choose a ${t("task").toLowerCase()}`} />
       </SelectTrigger>
-      <SelectContent>{p.tasks.map(x => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
+      <SelectContent>{options.map(x => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
     </Select>
   )
 }
 
-function ClassicGrid({ rows, days, editable, v, onHours }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"] }) {
+/** Lines grouped by project in first-seen order: each task is its own line, and the project gets a total. */
+function byProject(rows: GridRow[]) {
+  const groups = new Map<string, GridRow[]>()
+  rows.forEach(r => groups.set(r.proj, [...(groups.get(r.proj) || []), r]))
+  return [...groups.entries()].map(([proj, lines]) => ({ proj, lines, total: lines.reduce((a, r) => a + rowTotal(r.h), 0) }))
+}
+
+/** Adds a line for a task not yet on this project, picked from a short menu. */
+function AddTaskButton({ proj, lines, disabled }: { proj: string; lines: GridRow[]; disabled: boolean }) {
+  const addTask = useDemo(st => st.addGridTask)
+  const { at } = useT()
+  const free = PROJECTS[proj].tasks.filter(x => !lines.some(r => r.task === x))
+  if (PROJECTS[proj].tasks.length < 2 || !free.length) return null
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="-ml-2 text-primary" disabled={disabled}><Plus /> {at("addTask")}</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {free.map(x => <DropdownMenuItem key={x} onSelect={() => addTask(proj, x)}>{x}</DropdownMenuItem>)}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; locked: boolean }) {
   const { lang, t, at } = useT()
   const cols = days.map((d, i) => ({ d, i }))
   return (
@@ -81,7 +110,7 @@ function ClassicGrid({ rows, days, editable, v, onHours }: { rows: GridRow[]; da
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead className="bg-muted/60 text-xs font-medium text-muted-foreground">
             <tr>
-              <th scope="col" className="sticky left-0 z-10 min-w-56 bg-muted px-4 py-3 text-left">{t("project")}</th>
+              <th scope="col" className="sticky left-0 z-10 min-w-56 bg-muted px-4 py-3 text-left">{t("project")} / {t("task")}</th>
               {cols.map(({ d }) => (
                 <th key={d} scope="col" className={cn("px-1.5 py-3 text-center", d === todayStr() && "text-primary")}>
                   {fmtWeekday(d, lang)} <span className="tabular-nums">{parseYmd(d).getDate()}</span>
@@ -91,24 +120,38 @@ function ClassicGrid({ rows, days, editable, v, onHours }: { rows: GridRow[]; da
             </tr>
           </thead>
           <tbody>
-            {rows.map(r => (
-              <tr key={r.id} data-row={r.id} className={cn("border-t", r.status === "Rejected" && "bg-destructive-soft/40")}>
-                <th scope="row" className="sticky left-0 z-10 bg-card px-4 py-2.5 text-left align-top font-normal">
-                  <div className="font-medium">{r.proj} <span className="font-normal text-muted-foreground">{PROJECTS[r.proj].name}</span></div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <TaskSelect row={r} editable={editable(r)} invalid={v.badTask.has(r.id)} />
-                    {r.status !== "Draft" && <StatusPill tone={rowTone(r.status)}>{r.status}</StatusPill>}
-                  </div>
-                  {r.note && <p className="mt-1.5 text-xs text-destructive"><b>Note from approver:</b> {r.note}</p>}
+            {byProject(rows).flatMap(({ proj, lines, total }) => [
+              // The project has its own line, so each task line below lines up with its own hours.
+              <tr key={`${proj}-head`} className="border-t">
+                <th scope="rowgroup" colSpan={cols.length + 2} className="sticky left-0 bg-card px-4 pt-3 pb-1 text-left font-semibold">
+                  {proj} <span className="font-normal text-muted-foreground">{PROJECTS[proj].name}</span>
                 </th>
-                {cols.map(({ i }) => (
-                  <td key={i} className="px-1 py-2.5 align-top">
-                    <HoursInput row={r} i={i} days={days} editable={editable(r)} v={v} onHours={onHours} />
-                  </td>
-                ))}
-                <td className="px-4 py-2.5 text-right align-top font-semibold tabular-nums"><span className="inline-flex h-11 items-center">{fmtH(rowTotal(r.h), lang)}</span></td>
-              </tr>
-            ))}
+              </tr>,
+              ...lines.map(r => (
+                <tr key={r.id} data-row={r.id} className={cn(r.status === "Rejected" && "bg-destructive-soft/40")}>
+                  <th scope="row" className="sticky left-0 z-10 bg-card py-1.5 pr-4 pl-7 text-left align-middle font-normal">
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                      <TaskSelect row={r} siblings={lines} editable={editable(r)} invalid={v.badTask.has(r.id)} />
+                      {r.status !== "Draft" && r.status !== "Recorded" && <StatusPill tone={rowTone(r.status)}>{r.status}</StatusPill>}
+                    </div>
+                    {r.note && <p className="mt-1.5 text-xs text-destructive"><b>Note from approver:</b> {r.note}</p>}
+                  </th>
+                  {cols.map(({ i }) => (
+                    <td key={i} className="px-1 py-1.5 align-middle">
+                      <HoursInput row={r} i={i} days={days} editable={editable(r)} v={v} onHours={onHours} />
+                    </td>
+                  ))}
+                  <td className={cn("px-4 py-1.5 text-right align-middle tabular-nums", lines.length === 1 && "font-semibold")}>{fmtH(rowTotal(r.h), lang)}</td>
+                </tr>
+              )),
+              <tr key={`${proj}-total`} className="text-sm">
+                <th scope="row" className="sticky left-0 z-10 bg-card py-1 pr-4 pl-7 text-left align-middle font-normal">
+                  <AddTaskButton proj={proj} lines={lines} disabled={locked} />
+                </th>
+                <td colSpan={cols.length} className="px-1 py-1 text-right align-middle text-muted-foreground">{lines.length > 1 ? at("projectTotal") : ""}</td>
+                <td className="px-4 py-1 text-right align-middle font-semibold tabular-nums">{lines.length > 1 ? fmtH(total, lang) : ""}</td>
+              </tr>,
+            ])}
             {!rows.length && <tr><td colSpan={cols.length + 2} className="px-4 py-6 text-center text-muted-foreground">No rows. Choose Add project to start.</td></tr>}
           </tbody>
           <tfoot className="border-t bg-muted/40 text-sm font-medium">
@@ -126,58 +169,70 @@ function ClassicGrid({ rows, days, editable, v, onHours }: { rows: GridRow[]; da
   )
 }
 
-function ModernCards({ rows, days, editable, v, onHours }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"] }) {
+function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; locked: boolean }) {
   const setHidden = useDemo(st => st.setProjectHidden)
   const { lang, at } = useT()
   return (
     <ul className="space-y-3">
-      {rows.map(r => {
-        const p = PROJECTS[r.proj], total = rowTotal(r.h), ed = editable(r)
+      {byProject(rows).map(({ proj, lines, total }) => {
+        const p = PROJECTS[proj]
         return (
-          <li key={r.id} data-row={r.id} className={cn("rounded-2xl border bg-card p-4 shadow-soft sm:p-5", r.status === "Rejected" && "border-destructive/40")}>
+          <li key={proj} className={cn("rounded-2xl border bg-card p-4 shadow-soft sm:p-5", lines.some(r => r.status === "Rejected") && "border-destructive/40")}>
             <div className="flex items-start gap-3">
               <span className={cn("mt-2 size-2 shrink-0 rounded-full", total ? "bg-success" : "bg-input")} aria-hidden />
               <div className="min-w-0 flex-1">
-                <h3 className="text-[15px] leading-snug font-semibold"><span className="tabular-nums">{r.proj}</span> · {p.name}</h3>
+                <h3 className="text-[15px] leading-snug font-semibold"><span className="tabular-nums">{proj}</span> · {p.name}</h3>
                 <p className="truncate text-sm text-muted-foreground">{[p.client, p.show !== "—" && p.show].filter(Boolean).join(" · ")}</p>
-                {/* Draft is every new line's state, so only a decision (returned, approved…) earns a pill. */}
-                {r.status !== "Draft" && <StatusPill tone={rowTone(r.status)} className="mt-2">{r.status}</StatusPill>}
               </div>
               <label className="flex shrink-0 flex-col items-center gap-0.5 text-[11px] font-medium text-muted-foreground sm:flex-row-reverse sm:gap-2 sm:text-sm sm:text-foreground">
                 <span>{at("show")}</span>
                 <Switch
                   checked
-                  aria-label={`${at("showOnTimecard")}: ${r.proj}`}
+                  aria-label={`${at("showOnTimecard")}: ${proj}`}
                   onCheckedChange={() => {
-                    setHidden(r.proj, true)
-                    toast(total ? `${r.proj} hidden from your list. Its hours stay on the timecard.` : `${r.proj} hidden from your timecard.`, { action: { label: "Undo", onClick: () => setHidden(r.proj, false) } })
+                    setHidden(proj, true)
+                    toast(total ? `${proj} hidden from your list. Its hours stay on the timecard.` : `${proj} hidden from your timecard.`, { action: { label: "Undo", onClick: () => setHidden(proj, false) } })
                   }}
                 />
               </label>
             </div>
-            {r.note && <Notice tone="danger" className="mt-3"><b>Note from approver:</b> {r.note}</Notice>}
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-1">
-                <TaskSelect row={r} editable={ed} invalid={v.badTask.has(r.id)} quiet />
-              </div>
-              <p className="shrink-0 text-sm text-muted-foreground">
-                {at("total")} <output className="ml-1 text-base font-semibold text-foreground tabular-nums">{fmtH(total, lang)} h</output>
-              </p>
-            </div>
-            {/* The whole week, Monday to Sunday, in one row — like a native week strip. */}
-            <div className="mt-2 grid grid-cols-7 gap-1 sm:gap-2">
-              {days.map((d, i) => (
-                <div key={i} className="min-w-0 space-y-1">
-                  <div className={cn(
-                    "flex flex-col items-center text-[11px] leading-tight font-medium sm:flex-row sm:justify-center sm:gap-1 sm:text-xs",
-                    d === todayStr() ? "text-primary" : i > 4 ? "text-muted-foreground/70" : "text-muted-foreground",
-                  )}>
-                    <span>{fmtWeekday(d, lang)}</span>
-                    <span className={cn("tabular-nums", d === todayStr() && "rounded-full bg-primary px-1.5 text-primary-foreground")}>{parseYmd(d).getDate()}</span>
+            {/* One line per task, each with its own week strip; the project total sums the lines. */}
+            {lines.map((r, li) => {
+              const ed = editable(r)
+              return (
+                <div key={r.id} data-row={r.id} className={cn(li > 0 && "mt-3 border-t pt-3")}>
+                  {r.note && <Notice tone="danger" className="mt-3"><b>Note from approver:</b> {r.note}</Notice>}
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                      <TaskSelect row={r} siblings={lines} editable={ed} invalid={v.badTask.has(r.id)} quiet />
+                      {/* Draft and Recorded (salaried time needs no approval) say nothing new, so only a decision earns a pill. */}
+                      {r.status !== "Draft" && r.status !== "Recorded" && <StatusPill tone={rowTone(r.status)}>{r.status}</StatusPill>}
+                    </div>
+                    <output className="shrink-0 text-sm font-medium tabular-nums">{fmtH(rowTotal(r.h), lang)} h</output>
                   </div>
-                  <HoursInput row={r} i={i} days={days} editable={ed} v={v} onHours={onHours} className={cn("px-0", i > 4 && "bg-muted/40")} />
+                  {/* The whole week, Monday to Sunday, in one row — like a native week strip. */}
+                  <div className="mt-2 grid grid-cols-7 gap-1 sm:gap-2">
+                    {days.map((d, i) => (
+                      <div key={i} className="min-w-0 space-y-1">
+                        <div className={cn(
+                          "flex flex-col items-center text-[11px] leading-tight font-medium sm:flex-row sm:justify-center sm:gap-1 sm:text-xs",
+                          d === todayStr() ? "text-primary" : i > 4 ? "text-muted-foreground/70" : "text-muted-foreground",
+                        )}>
+                          <span>{fmtWeekday(d, lang)}</span>
+                          <span className={cn("tabular-nums", d === todayStr() && "rounded-full bg-primary px-1.5 text-primary-foreground")}>{parseYmd(d).getDate()}</span>
+                        </div>
+                        <HoursInput row={r} i={i} days={days} editable={ed} v={v} onHours={onHours} className={cn("px-0", i > 4 && "bg-muted/40")} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )
+            })}
+            <div className="mt-3 flex min-h-9 items-center justify-between gap-3 border-t pt-2">
+              <AddTaskButton proj={proj} lines={lines} disabled={locked} />
+              <p className="ml-auto shrink-0 text-sm text-muted-foreground">
+                {at("projectTotal")} <output className="ml-1 text-base font-semibold text-foreground tabular-nums">{fmtH(total, lang)} h</output>
+              </p>
             </div>
           </li>
         )
@@ -199,13 +254,13 @@ export default function ProjectHoursView() {
   const g = gridWeekOf(s, emp, off)
   const locked = off !== 0 // only the current pay period is editable
   const editable = (r: GridRow) => !locked && r.status !== "Approved" && !r.archived
-  const [dirty, setDirty] = useState<Set<string>>(new Set())
+  const saveDraft = useDemo(st => st.saveGridDraft)
   const [strict, setStrict] = useState(false)
   const [manageOpen, setManageOpen] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [showHidden, setShowHidden] = useState(false)
 
-  useEffect(() => { setDirty(new Set()); setStrict(false) }, [emp, off])
+  useEffect(() => { setStrict(false) }, [emp, off])
 
   const v = useMemo(() => gridValidate(g, strict, days, d => fmtDayShort(d, lang)), [g, strict, days, lang])
   const rows = g.rows.filter(r => !r.archived)
@@ -213,16 +268,18 @@ export default function ProjectHoursView() {
   const hiddenCodes = assigned(s, emp).filter(c => isHidden(s, emp, c) && !visible.some(r => r.proj === c))
   const missing = days.slice(0, 5).filter((d, i) => d < todayStr() && g.rows.every(r => !num(r.h[i]))).length
   const weekTotal = v.dayTot.reduce((a, b) => a + b, 0)
+  // Unsent changes live on the lines, so leaving the screen never loses them or marks them as sent.
+  const unsent = rows.filter(r => r.unsent && r.status !== "Approved").length
 
-  const onHours = (rowId: string, i: number, value: string) => {
-    setHours(rowId, i, value)
-    setDirty(prev => new Set(prev).add(rowId))
+  const onHours = (rowId: string, i: number, value: string) => setHours(rowId, i, value)
+  const draft = () => {
+    saveDraft()
+    toast.success(at("draftSavedToast"))
   }
   const save = () => {
     setStrict(true)
-    const result = saveGrid(dirty)
+    const result = saveGrid()
     if (!result.ok) { toast.error(result.message); return }
-    setDirty(new Set())
     setStrict(false)
     if (result.message.startsWith("Nothing")) toast(result.message)
     else toast.success(result.message)
@@ -231,7 +288,7 @@ export default function ProjectHoursView() {
     const prev = s.grid[emp]?.[periodKey(off - 1)]
     if (!prev) { toast("No rows last week to copy."); return }
     let added = 0, skipped = 0
-    const ids: string[] = []
+
     mutate(x => {
       const pk = periodKey(off)
       x.grid[emp] ||= {}
@@ -240,19 +297,17 @@ export default function ProjectHoursView() {
       prev.rows.forEach(r => {
         if (r.archived) return
         if (!PROJECTS[r.proj].active || !assigned(x as typeof s, emp).includes(r.proj)) { skipped++; return }
-        const existing = week.rows.find(y => y.proj === r.proj && !y.archived)
+        // Match the task line too, so each task copies onto its own line.
+        const existing = week.rows.find(y => y.proj === r.proj && !y.archived && (y.task === r.task || !y.task))
         if (existing) {
           if (existing.h.some(h => h !== "") || existing.status !== "Draft") return
-          existing.h = [...r.h]; existing.task = existing.task || r.task; ids.push(existing.id)
+          existing.h = [...r.h]; existing.task = existing.task || r.task; existing.unsent = true
         } else {
-          const id = `r${++x.seq}`
-          week.rows.push({ id, proj: r.proj, task: r.task, h: [...r.h], status: "Draft", note: "", archived: false })
-          ids.push(id)
+          week.rows.push({ id: `r${++x.seq}`, proj: r.proj, task: r.task, h: [...r.h], status: "Draft", note: "", archived: false, unsent: true })
         }
         added++
       })
     })
-    setDirty(prevSet => new Set([...prevSet, ...ids]))
     toast.success(`Copied ${added} row${added === 1 ? "" : "s"}${skipped ? `, ${skipped} closed project${skipped > 1 ? "s" : ""} skipped` : ""}.`)
   }
 
@@ -325,12 +380,12 @@ export default function ProjectHoursView() {
 
       <Highlightable hl="grid">
         {modern ? (
-          <ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} />
+          <ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} />
         ) : (
           <>
             {/* Phone: the wide grid can't fit, so Classic shows the same week cards as Modern. */}
-            <div className="sm:hidden"><ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} /></div>
-            <div className="max-sm:hidden"><ClassicGrid rows={visible} days={days} editable={editable} v={v} onHours={onHours} /></div>
+            <div className="sm:hidden"><ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} /></div>
+            <div className="max-sm:hidden"><ClassicGrid rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} /></div>
           </>
         )}
         {modern && !visible.length && (
@@ -362,17 +417,26 @@ export default function ProjectHoursView() {
       )}
 
       <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 lg:bottom-4">
-        <Highlightable hl="grid-submit" className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card/95 p-3 pl-4 shadow-raised backdrop-blur-md">
+        <Highlightable hl="grid-submit" className="flex items-center gap-x-3 gap-y-3 sm:flex-wrap sm:gap-x-6 rounded-2xl border bg-card/95 p-3 pl-4 shadow-raised backdrop-blur-md">
           <div>
             <div className="text-xs text-muted-foreground">{at("weekTotal")}</div>
             <div className="text-base font-semibold tabular-nums">{fmtH(weekTotal, lang)} h</div>
           </div>
           <p className="hidden flex-1 text-xs text-muted-foreground md:block">
-            {dirty.size ? `${at("unsaved")} · ${dirty.size} project${dirty.size === 1 ? "" : "s"}` : isSal ? "Saved hours are recorded in UKG." : "Saved hours go to the project approver."}
+            {unsent
+              ? g.draftAt ? at("draftSavedAt", { time: g.draftAt }) : at("unsaved")
+              : isSal ? "Submitted hours are recorded in UKG." : "Submitted hours go to the project approver."}
           </p>
-          <Button size="lg" className="ml-auto" onClick={save} disabled={locked || !dirty.size}>
-            <Save /> {dirty.size ? (isSal ? t("save") : at("submitTimecard")) : at("saved")}
-          </Button>
+          {/* Save draft keeps the work without sending it; Submit is the only step that reaches UKG. */}
+          <div className="ml-auto flex gap-2">
+            {/* Phone: icon only, so the bar stays one line above the tab bar. */}
+            <Button size="lg" variant="outline" className="max-sm:px-3" onClick={draft} disabled={locked || !unsent} aria-label={at("saveDraft")} title={at("saveDraft")}>
+              <Save /> <span className="max-sm:hidden">{at("saveDraft")}</span>
+            </Button>
+            <Button size="lg" onClick={save} disabled={locked || !unsent}>
+              <Send /> {unsent ? at(isSal ? "submitToUkg" : "submitForApproval") : at("submitted")}
+            </Button>
+          </div>
         </Highlightable>
       </div>
 
