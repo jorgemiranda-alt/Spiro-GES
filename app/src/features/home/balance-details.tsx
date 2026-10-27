@@ -21,6 +21,37 @@ function useBreakdown(emp: string, type: string, amount: number) {
   return { rule, pending, approved, left: amount - pending - approved, next }
 }
 
+/** A balance as time used toward the year's allowance (Beth, Oct 20 walkthrough):
+    the bar fills with hours taken plus approved requests, starting empty; pending requests are named
+    but neither fill the bar nor reduce the remaining hours, since they may still be refused. */
+export function BalanceBar({ emp, type, label, amount, allowance, unit }: {
+  emp: string; type: string; label: string; amount: number; allowance: number; unit: string
+}) {
+  const { lang, ht } = useT()
+  const b = useBreakdown(emp, type, amount)
+  const n = (v: number) => v.toLocaleString(locale(lang), { maximumFractionDigits: 1 })
+  const used = Math.max(0, allowance - amount) + b.approved
+  const remaining = Math.max(0, amount - b.approved)
+  const empty = remaining <= 0
+  const usedText = ht("balUsedOf").replace("{used}", n(used)).replace("{total}", n(allowance))
+  return (
+    <BalanceDetails emp={emp} type={type} label={label} amount={amount} unit={unit}>
+      <span className="flex justify-between text-sm">
+        <span>{label}</span>
+        <b className={cn("font-semibold tabular-nums", empty && "text-destructive")}>{n(remaining)} {unit}</b>
+      </span>
+      <span role="img" aria-label={usedText} className="block h-2 overflow-hidden rounded-full bg-muted">
+        {/* Turns red once nothing is left. */}
+        <span className={cn("block h-full rounded-full", empty ? "bg-destructive" : "bg-cerulean")} style={{ width: `${Math.min(100, Math.round((used / allowance) * 100))}%` }} />
+      </span>
+      <span className="block text-xs text-muted-foreground tabular-nums">
+        {usedText}
+        {b.pending > 0 && <> · <span className="text-warning">{ht("balPendingNote").replace("{n}", n(b.pending))}</span></>}
+      </span>
+    </BalanceDetails>
+  )
+}
+
 /** A balance row that shows its accrual breakdown on hover, tap or keyboard focus. */
 export function BalanceDetails({ emp, type, label, amount, unit, children }: {
   emp: string; type: string; label: string; amount: number; unit: string; children: React.ReactNode

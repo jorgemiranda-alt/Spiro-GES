@@ -13,7 +13,7 @@ import { useDemo } from "@/store/store"
 import { useTimeOffIntent } from "@/features/time-off/time-off-intent"
 import { fmtDateRange, personName, typeLabel } from "@/features/time-off/time-off-model"
 import { StatusBadge } from "@/features/time-off/time-off-parts"
-import { BalanceDetails } from "./balance-details"
+import { BalanceBar } from "./balance-details"
 
 type BudgetState = "over" | "near" | "watch" | "within"
 // Green 1–74% of estimate, yellow 75–90%, red 91% and up (same thresholds as the project dashboard).
@@ -67,7 +67,6 @@ export default function HomeView() {
 
   const eligible = new Set(TO_SAMPLE.employees[emp]?.types || [])
   const balances = Object.entries(TO_SAMPLE.balances).filter(([type]) => eligible.has(type))
-  const maxBal = Math.max(1, ...balances.map(([, b]) => b.amount))
   const now = parseYmd(todayStr())
   const periodStart = new Date(now.getFullYear(), now.getMonth(), 1), periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   const fmtLong = (d: Date) => d.toLocaleDateString(locale(lang), { month: "short", day: "numeric", year: "numeric" })
@@ -203,10 +202,7 @@ export default function HomeView() {
               <ul className="mt-3 space-y-1">
                 {balances.map(([type, b]) => (
                   <li key={type}>
-                    <BalanceDetails emp={emp} type={type} label={tt(type)} amount={b.amount} unit={tt(b.unit)}>
-                      <span className="flex justify-between text-sm"><span>{tt(type)}</span><b className="font-semibold tabular-nums">{b.amount.toLocaleString(locale(lang))} {tt(b.unit)}</b></span>
-                      <span className="block h-2 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-cerulean" style={{ width: `${Math.round((b.amount / maxBal) * 100)}%` }} /></span>
-                    </BalanceDetails>
+                    <BalanceBar emp={emp} type={type} label={tt(type)} amount={b.amount} allowance={b.allowance} unit={tt(b.unit)} />
                   </li>
                 ))}
               </ul>

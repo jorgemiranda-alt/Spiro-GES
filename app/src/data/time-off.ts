@@ -27,11 +27,12 @@ export const TO_SAMPLE = {
   // Illustrative work calendar and rule configuration; these are not Spiro policy.
   workdays: [1, 2, 3, 4, 5],
   rules: { pto: { name: "ruleThree", delayMilliseconds: 259200000 } } as Record<string, { name: string; delayMilliseconds: number }>,
+  // amount: available now; allowance: this year's entitlement, so hours used = allowance − amount.
   balances: {
-    pto: { amount: 72, unit: "hours" },
-    sick: { amount: 40, unit: "hours" },
-    personal: { amount: 16, unit: "hours" },
-  } as Record<string, { amount: number; unit: string }>,
+    pto: { amount: 72, allowance: 120, unit: "hours" },
+    sick: { amount: 40, allowance: 40, unit: "hours" },
+    personal: { amount: 16, allowance: 24, unit: "hours" },
+  } as Record<string, { amount: number; allowance: number; unit: string }>,
   // Illustrative accrual rules behind the balances above: hours earned each two-week pay period,
   // or a yearly grant on January 1, plus carryover and the most a balance can hold.
   accruals: {
