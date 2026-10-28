@@ -5,7 +5,7 @@ import { useDemo } from "@/store/store"
 import type { TimecardLayout } from "@/store/types"
 
 /** Classic (UKG-style grid) or Modern (project cards). Stakeholders flip it during reviews. */
-export function LayoutToggle({ className, compact = false }: { className?: string; compact?: boolean }) {
+export function LayoutToggle({ className }: { className?: string }) {
   const layout = useDemo(st => st.s.settings.layout)
   const setLayout = useDemo(st => st.setLayout)
   const { at } = useT()
@@ -37,7 +37,6 @@ export function LayoutToggle({ className, compact = false }: { className?: strin
         )
       })}
     </div>
-    {!compact && <p className="text-xs text-muted-foreground max-sm:hidden" aria-live="polite">{at(layout === "classic" ? "classicCaption" : "modernCaption")}</p>}
     </div>
   )
 }

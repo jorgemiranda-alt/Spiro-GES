@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Highlightable, JourneyTags, PageHeader } from "@/components/app/common"
+import { CutoffNote } from "@/components/app/cutoff-note"
 import { LayoutToggle } from "@/components/app/layout-toggle"
 import { MetaTag, Notice, StatusPill, rowTone } from "@/components/app/status"
 import { WeekNav } from "@/components/app/week-nav"
@@ -324,9 +325,10 @@ export default function ProjectHoursView() {
       />
       <WeekNav min={-1} max={1} meta={g.savedAt ? `${at("saved")} ${g.savedAt}` : `Loaded ${fmtClock(hm(new Date()), lang)}`} />
 
+      {off === 0 && <CutoffNote emp={emp} />}
       {off === 0 && missing > 0 && (
         <Highlightable hl="reminder">
-          <Notice tone="warning"><b>Reminder:</b> {missing} weekday{missing > 1 ? "s" : ""} this week {missing > 1 ? "have" : "has"} no hours yet. Time is due Friday at 17:00.</Notice>
+          <Notice tone="warning"><b>Reminder:</b> {missing} weekday{missing > 1 ? "s" : ""} this week {missing > 1 ? "have" : "has"} no hours yet. Enter them before payroll closes.</Notice>
         </Highlightable>
       )}
       {g.rows.some(r => r.status === "Rejected") && (
