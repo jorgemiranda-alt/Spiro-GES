@@ -4,7 +4,7 @@ import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LOGO_SRC } from "@/data/assets"
 import { PERSONAS, type PersonaId, type ViewId } from "@/data/reference-data"
-import { LANGUAGES, useT } from "@/lib/i18n"
+import { LANGUAGES, languageIn, useT } from "@/lib/i18n"
 import { useInstall } from "@/lib/pwa"
 import { personaViews } from "@/lib/routing"
 import { cn } from "@/lib/utils"
@@ -81,9 +81,19 @@ function DemoControls({ dark }: { dark?: boolean }) {
       <label className="block space-y-1.5">
         <span className={cn("text-xs font-medium tracking-wide uppercase", dark ? "text-nav-muted" : "text-muted-foreground")}>{t("language")}</span>
         <Select value={s.lang} onValueChange={setLang}>
-          <SelectTrigger className={trigger} aria-label={t("language")}><Globe className="size-4" /><SelectValue /></SelectTrigger>
+          <SelectTrigger className={trigger} aria-label={t("language")}>
+            <Globe className="size-4" />
+            {/* The closed picker shows just the chosen language's own name. */}
+            <SelectValue>{LANGUAGES.find(l => l.code === s.lang)?.name}</SelectValue>
+          </SelectTrigger>
           <SelectContent>
-            {LANGUAGES.map(l => <SelectItem key={l.code} value={l.code}>{l.name}</SelectItem>)}
+            {/* Each language in its own name, so speakers recognise it, then in the current language. */}
+            {LANGUAGES.map(l => (
+              <SelectItem key={l.code} value={l.code}>
+                <span lang={l.code}>{l.name}</span>
+                {languageIn(l.code, s.lang) && <span className="text-muted-foreground">· {languageIn(l.code, s.lang)}</span>}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </label>

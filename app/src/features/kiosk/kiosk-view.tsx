@@ -9,7 +9,7 @@ import { LOGO_SRC } from "@/data/assets"
 import { PERSONAS, PROJECTS } from "@/data/reference-data"
 import { fmtClock, fmtDay, hm, locale, tsDate, tsTime } from "@/lib/dates"
 import { liveState } from "@/lib/engine"
-import { LANGUAGES, translate, useT } from "@/lib/i18n"
+import { LANGUAGES, languageIn, translate, useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import type { PunchType } from "@/store/types"
@@ -234,7 +234,8 @@ function KioskMenu({ onExit }: { onExit: () => void }) {
                 onClick={() => setLang(l.code)}
                 className="min-h-12 rounded-xl border px-3 text-left text-base font-medium transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary-soft aria-pressed:text-primary"
               >
-                {l.name}
+                <span lang={l.code} className="block">{l.name}</span>
+                {languageIn(l.code, lang) && <span className="block text-xs font-normal text-muted-foreground">{languageIn(l.code, lang)}</span>}
               </button>
             ))}
           </div>

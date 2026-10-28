@@ -12,6 +12,18 @@ export const LANGUAGES = [
   { code: "pl", name: "Polski" },
 ]
 
+/** A language's name in the interface language ("German" while in English), or "" when it is that language.
+    Uses the browser's own translations, so no extra copy to maintain. */
+export function languageIn(code: string, uiLang: string) {
+  if (code === uiLang) return ""
+  try {
+    const name = new Intl.DisplayNames([uiLang], { type: "language" }).of(code) || ""
+    return name.charAt(0).toLocaleUpperCase(uiLang) + name.slice(1)
+  } catch {
+    return ""
+  }
+}
+
 const fill = (value: string, vars: Record<string, string | number> = {}) =>
   value.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""))
 
