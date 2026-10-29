@@ -11,7 +11,7 @@ import { MetaTag, Notice, StatusPill, rowTone } from "@/components/app/status"
 import { WeekNav } from "@/components/app/week-nav"
 import { PERSONAS, PROJECTS } from "@/data/reference-data"
 import { fmtClock, fmtDay, fmtDayShort, fmtH, fmtWeekday, hm, parseYmd, periodDays, periodKey, todayStr } from "@/lib/dates"
-import { assigned, gridValidate, gridWeekOf, hiddenCount, isHidden, num, rowTotal, type GridValidation } from "@/lib/engine"
+import { assigned, gridValidate, gridWeekOf, hiddenCount, isHidden, rowTotal, type GridValidation } from "@/lib/engine"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
@@ -266,7 +266,6 @@ export default function ProjectHoursView() {
   const rows = g.rows.filter(r => !r.archived)
   const visible = rows.filter(r => !isHidden(s, emp, r.proj) || rowTotal(r.h) > 0)
   const hiddenCodes = assigned(s, emp).filter(c => isHidden(s, emp, c) && !visible.some(r => r.proj === c))
-  const missing = days.slice(0, 5).filter((d, i) => d < todayStr() && g.rows.every(r => !num(r.h[i]))).length
   const weekTotal = v.dayTot.reduce((a, b) => a + b, 0)
   // Unsent changes live on the lines, so leaving the screen never loses them or marks them as sent.
   const unsent = rows.filter(r => r.unsent && r.status !== "Approved").length
@@ -324,11 +323,6 @@ export default function ProjectHoursView() {
       />
       <WeekNav min={-1} max={1} meta={g.savedAt ? `${at("saved")} ${g.savedAt}` : `Loaded ${fmtClock(hm(new Date()), lang)}`} />
 
-      {off === 0 && missing > 0 && (
-        <Highlightable hl="reminder">
-          <Notice tone="warning"><b>{at("reminderLabel")}:</b> {at("reminderDays", { n: missing })}</Notice>
-        </Highlightable>
-      )}
       {g.rows.some(r => r.status === "Rejected") && (
         <Notice tone="danger"><b>An approver returned a line.</b> Read the note on the highlighted project, fix it, then save again.</Notice>
       )}
