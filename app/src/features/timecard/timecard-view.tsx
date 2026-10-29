@@ -11,6 +11,7 @@ import { useT } from "@/lib/i18n"
 import { useDemo } from "@/store/store"
 import { ClassicTimecard, TimecardTotals } from "./classic-timecard"
 import { ModernTimecard } from "./modern-timecard"
+import { isPunchBased } from "./punch-day"
 
 export default function TimecardView() {
   const s = useDemo(st => st.s)
@@ -26,7 +27,7 @@ export default function TimecardView() {
         title={t("timecard")}
         tags="TC-01,TC-02"
         hideDescriptionOnMobile
-        description={modern ? "Your time by project. Pick a day, then check start, end and break for each project." : at("readOnlyNote")}
+        description={modern ? at(isPunchBased(emp) ? "tcDescPunch" : "tcDescModern") : at("readOnlyNote")}
         actions={<LayoutToggle />}
       />
       <WeekNav
@@ -38,7 +39,7 @@ export default function TimecardView() {
               type="button"
               aria-label="Refresh timecard"
               className="grid size-9 place-items-center rounded-lg hover:bg-muted"
-              onClick={() => toast("Reading timecard from UKG…")}
+              onClick={() => toast(at("readingUkg"))}
             >
               <RefreshCw className="size-4" aria-hidden />
             </button>

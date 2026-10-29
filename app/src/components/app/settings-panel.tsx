@@ -28,15 +28,16 @@ function ToggleRow({ checked, onChange, title, children }: { checked: boolean; o
 
 /** Swatches mirror the tokens in index.css: navigation, primary, background. */
 const SCHEMES: { id: ColorScheme; name: string; note: string; nav: string; primary: string; bg: string }[] = [
-  { id: "spiro", name: "Spiro", note: "Graphite and Marine on Cream", nav: "#282c25", primary: "#284e59", bg: "#f8f7ef" },
-  { id: "marine", name: "Marine", note: "Marine navigation, Cerulean accents", nav: "#1a4f5a", primary: "#1a4f5a", bg: "#f6f8f4" },
-  { id: "fern", name: "Fern", note: "Fern with Citron highlights", nav: "#4d554b", primary: "#4d554b", bg: "#f8f7ef" },
-  { id: "cloud", name: "Cloud", note: "Cool Cloud surfaces, Graphite navigation", nav: "#20271e", primary: "#1a4f5a", bg: "#f4f7f9" },
+  { id: "spiro", name: "Spiro", note: "schemeSpiro", nav: "#282c25", primary: "#284e59", bg: "#f8f7ef" },
+  { id: "marine", name: "Marine", note: "schemeMarine", nav: "#1a4f5a", primary: "#1a4f5a", bg: "#f6f8f4" },
+  { id: "fern", name: "Fern", note: "schemeFern", nav: "#4d554b", primary: "#4d554b", bg: "#f8f7ef" },
+  { id: "cloud", name: "Cloud", note: "schemeCloud", nav: "#20271e", primary: "#1a4f5a", bg: "#f4f7f9" },
 ]
 
 function SchemePicker() {
   const current = useDemo(st => st.s.settings.scheme) || "spiro"
   const setSetting = useDemo(st => st.setSetting)
+  const { at } = useT()
   return (
     <div role="radiogroup" aria-label="Color scheme" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {SCHEMES.map(x => {
@@ -70,7 +71,7 @@ function SchemePicker() {
                 {x.name}
                 {on && <Check className="size-4 text-primary" aria-hidden />}
               </span>
-              <span className="block text-xs leading-snug text-muted-foreground">{x.note}</span>
+              <span className="block text-xs leading-snug text-muted-foreground">{at(x.note)}</span>
             </span>
           </button>
         )
@@ -92,49 +93,45 @@ export function SettingsPanel() {
       open={open}
       onOpenChange={setOpen}
       title={at("demoSettings")}
-      description="Data stays in this browser only. Nothing is sent to UKG or Odoo; calls are simulated."
+      description={at("dsNote")}
       footer={
         <Button variant="destructive" size="lg" className="w-full sm:w-auto" onClick={() => {
           reset()
           useTimeOffScenarios.setState({ failSubmit: false, balanceUnavailable: false, failRefresh: false })
           useTimeOffUI.getState().reset(useDemo.getState().s.persona)
           setOpen(false)
-          toast.success("Demo data reset.")
+          toast.success(at("dsResetDone"))
         }}>
-          <RotateCcw /> Reset demo data
+          <RotateCcw /> {at("dsReset")}
         </Button>
       }
     >
       <section className="space-y-2 pb-5">
-        <h3 className="text-sm font-semibold">Color scheme</h3>
-        <p className="text-sm text-muted-foreground">Light themes built from the Spiro brand palette. Status colors stay the same in every theme.</p>
+        <h3 className="text-sm font-semibold">{at("dsColor")}</h3>
+        <p className="text-sm text-muted-foreground">{at("dsColorHelp")}</p>
         <SchemePicker />
       </section>
       <section className="space-y-2 pb-2">
-        <h3 className="text-sm font-semibold">{at("layout")} · timecards</h3>
-        <p className="text-sm text-muted-foreground">Compare the current UKG-style grid with the proposed project cards. The choice applies to My Timecard and Project hours.</p>
+        <h3 className="text-sm font-semibold">{at("layout")} · {at("dsTimecards")}</h3>
+        <p className="text-sm text-muted-foreground">{at("dsLayoutHelp")}</p>
         <LayoutToggle className="mt-2" />
       </section>
       <div className="divide-y">
-        <ToggleRow checked={settings.tags} onChange={v => setSetting("tags", v)} title="Show journey tags">
-          Dashed IDs link each part of the screen to its journey.
+        <ToggleRow checked={settings.tags} onChange={v => setSetting("tags", v)} title={at("dsTags")}>
+          {at("dsTagsHelp")}
         </ToggleRow>
-        <ToggleRow checked={settings.hideViewAs} onChange={v => setSetting("hideViewAs", v)} title="Hide “Viewing as”">
-          Hides the persona switcher for cleaner screenshots.
+        <ToggleRow checked={settings.hideViewAs} onChange={v => setSetting("hideViewAs", v)} title={at("dsHideViewAs")}>
+          {at("dsHideViewAsHelp")}
         </ToggleRow>
-        <ToggleRow checked={settings.simDuplicatePunchError} onChange={v => setSetting("simDuplicatePunchError", v)} title="Simulate a duplicate-punch error">
-          The next Punch In or Punch Out shows the error returned by UKG (PU-08).
+        <ToggleRow checked={settings.simDuplicatePunchError} onChange={v => setSetting("simDuplicatePunchError", v)} title={at("dsDup")}>
+          {at("dsDupHelp")}
         </ToggleRow>
       </div>
       <TimeOffDemoSettings />
       <section className="mt-3 rounded-xl bg-muted p-4 text-sm">
-        <h3 className="mb-1.5 font-semibold">Try these paths</h3>
+        <h3 className="mb-1.5 font-semibold">{at("dsPaths")}</h3>
         <ol className="list-decimal space-y-1 pl-4 text-muted-foreground">
-          <li>Ava › Punch: punch in, transfer, break, punch out.</li>
-          <li>Ava › My Timecard: switch between Classic and Modern.</li>
-          <li>Maya › Project hours: enter weekly hours per project.</li>
-          <li>Oliver › Time Off: review team requests.</li>
-          <li>Lukas › Kiosk: choose an action and scan a badge.</li>
+          {["dsPath1", "dsPath2", "dsPath3", "dsPath4", "dsPath5"].map(k => <li key={k}>{at(k)}</li>)}
         </ol>
       </section>
     </ResponsivePanel>

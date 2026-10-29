@@ -6,7 +6,7 @@ import { fmtClock, fmtRange, locale, nowTs, periodDays, periodKey, todayStr, tsT
 import {
   assigned, gridValidate, gridWeekOf, laborDefaults, laborKey, liveState, num, buildPeriod, HIDE_AHEAD_DAYS,
 } from "@/lib/engine"
-import { translate } from "@/lib/i18n"
+import { appText, translate } from "@/lib/i18n"
 import { load, persist, seed, STORE_KEY } from "./seed"
 import type { DemoState, GridWeek, Labor, ModernEntry, Punch, PunchType, Settings, TimecardLayout } from "./types"
 
@@ -156,7 +156,7 @@ export const useDemo = create<Store>((set, get) => {
           d.seq += 1
           d.audit.unshift({ ts, who: "UKG", emp, what: `${type === "IN" ? "Punch In" : "Punch Out"} failed`, detail: message, reason: "" })
         })
-        toast.error("Duplicate punch. UKG did not record this punch.")
+        toast.error(appText(get().s.lang, "dupPunch"))
         return
       }
       const labelKey = { IN: "punchIn", OUT: "punchOut", BRK_S: "startBreak", BRK_E: "endBreak", XFER: "transfer" }[type]
@@ -196,7 +196,7 @@ export const useDemo = create<Store>((set, get) => {
         transfer = { project: source.labor?.project || "", task: source.labor?.task || "", tc: source.labor?.tc ?? d.tc ?? "", func: source.labor?.func ?? d.func ?? "" }
         const cat = LABOR.opts.proj.find(x => x.v === transfer.project)
         if (!cat || (cat.taskReq && !transfer.task) || (transfer.task && !cat.tasks.includes(transfer.task))) {
-          toast.error("This saved transfer has incomplete labor categories. Add a transfer and choose the current categories.")
+          toast.error(appText(get().s.lang, "badLabor"))
           return
         }
       }

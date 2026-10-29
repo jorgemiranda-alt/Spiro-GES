@@ -16,6 +16,7 @@ import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import type { DemoState, ModernEntry } from "@/store/types"
+import { isPunchBased, PunchDay } from "./punch-day"
 
 /** The entry shown for a project on a day: what the employee typed, else what the punches imply. */
 function effectiveEntry(s: DemoState, emp: string, day: Day, code: string): { entry: ModernEntry; edited: boolean } {
@@ -197,6 +198,8 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
   const [showHidden, setShowHidden] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const day = days.find(d => d.date === selected) || days[0]
+  // Punch-based staff see their punches as UKG records them: read-only, same totals as Classic.
+  const punch = isPunchBased(emp)
   const future = day.date > today
   const disabled = locked || future
 
@@ -206,7 +209,7 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
   // Completed projects drop off the active list; "Show completed" brings them back for reference.
   const completed = (PERSONAS[emp as PersonaId].projects || []).filter(c => PROJECTS[c] && !PROJECTS[c].active && !codes.includes(c))
   const tucked = [...hidden, ...completed]
-  const hoursByDay = useMemo(() => new Map(days.map(d => [d.date, dayHours(s, emp, d)])), [days, s, emp])
+  const hoursByDay = useMemo(() => new Map(days.map(d => [d.date, punch ? d.daily : dayHours(s, emp, d)])), [days, s, emp, punch])
   const weekTotal = [...hoursByDay.values()].reduce((a, b) => a + b, 0)
   const selectedTotal = hoursByDay.get(day.date) || 0
   const prevDay = days[days.indexOf(day) - 1]
@@ -224,8 +227,8 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
         n++
       })
     })
-    if (n) toast.success(`Copied ${n} project${n === 1 ? "" : "s"} from ${fmtDay(prevDay.date, lang)}.`)
-    else toast(`No time to copy from ${fmtDay(prevDay.date, lang)}.`)
+    if (n) toast.success(at("copiedProjects", { n, day: fmtDay(prevDay.date, lang) }))
+    else toast(at("copyNoneFrom", { day: fmtDay(prevDay.date, lang) }))
   }
 
   return (
@@ -259,9 +262,9 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="space-y-0.5">
             <h2 className="flex items-center gap-2 text-lg font-semibold">{at("assignedProjects")} <JourneyTags ids="TC-01,TC-03" /></h2>
-            <p className="text-sm text-muted-foreground">{at("assignedHelp")}</p>
+            {!punch && <p className="text-sm text-muted-foreground">{at("assignedHelp")}</p>}
           </div>
-          <div className="no-scrollbar -mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
+          {!punch && <div className="no-scrollbar -mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0">
             {tucked.length > 0 && (
               <Button variant="outline" size="sm" onClick={() => setShowHidden(v => !v)} aria-expanded={showHidden}>
                 {showHidden ? <EyeOff /> : <Eye />} {showHidden ? at("hideHidden") : at("showHidden", { n: tucked.length })}
@@ -269,13 +272,13 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
             )}
             <Button variant="outline" size="sm" onClick={copyPrevious} disabled={disabled || !prevDay}><Copy /> {at("copyYesterday")}</Button>
             <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> {at("addProject")}</Button>
-          </div>
+          </div>}
         </div>
 
-        {future && <Notice tone="neutral">This day is in the future. Time can be entered once the day starts.</Notice>}
+        {!punch && future && <Notice tone="neutral">This day is in the future. Time can be entered once the day starts.</Notice>}
         {locked && <Notice tone="success">This timecard is approved and read-only.</Notice>}
 
-        {shown.length ? (
+        {punch ? <PunchDay day={day} emp={emp} /> : shown.length ? (
           <ul className="space-y-3">
             {shown.map(code => <ProjectCard key={code} emp={emp} day={day} code={code} disabled={disabled} />)}
           </ul>
@@ -287,7 +290,7 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
           </div>
         )}
 
-        {showHidden && tucked.length > 0 && (
+        {!punch && showHidden && tucked.length > 0 && (
           <ul className="divide-y rounded-2xl border bg-card/60">
             {completed.map(code => (
               <li key={code} className="flex items-center gap-3 px-4 py-3">
@@ -315,12 +318,18 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
       </Highlightable>
 
       <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 lg:bottom-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border bg-card/95 p-3 pl-4 shadow-raised backdrop-blur-md">
-          <div className="flex gap-6 text-sm">
-            <div><div className="text-xs text-muted-foreground">{at("dayTotal")}</div><div className="text-base font-semibold tabular-nums">{fmtH(selectedTotal, lang)} h</div></div>
-            <div><div className="text-xs text-muted-foreground">{at("weekTotal")}</div><div className="text-base font-semibold tabular-nums">{fmtH(weekTotal, lang)} h</div></div>
+        {/* The selected day and the week, compact enough to stay one line on phones. */}
+        <div className="flex items-center gap-3 rounded-2xl border bg-card/95 px-4 py-2.5 shadow-raised backdrop-blur-md sm:gap-5 sm:py-3">
+          <div className="shrink-0">
+            <div className="text-xs text-muted-foreground">{fmtDay(day.date, lang)}</div>
+            <div className="text-lg leading-tight font-semibold tabular-nums">{fmtH(selectedTotal, lang)} <span className="text-sm font-medium text-muted-foreground">h</span></div>
           </div>
-          <p className="hidden flex-1 text-right text-xs text-muted-foreground md:block">Changes save automatically as a draft.</p>
+          <span className="h-9 w-px shrink-0 bg-border" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <div className="text-xs text-muted-foreground">{at("weekTotal")}</div>
+            <div className="text-lg leading-tight font-semibold tabular-nums">{fmtH(weekTotal, lang)} <span className="text-sm font-medium text-muted-foreground">h</span></div>
+          </div>
+          {!punch && <p className="hidden max-w-48 text-right text-xs text-muted-foreground md:block">{at("autosaveDraft")}</p>}
         </div>
       </div>
 

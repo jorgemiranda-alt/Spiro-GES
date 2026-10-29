@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react"
-import { Check, Download, Ellipsis, Globe, Settings2 } from "lucide-react"
+import { Check, ChevronsUpDown, Download, Ellipsis, Globe, Settings2 } from "lucide-react"
 import { toast } from "sonner"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LOGO_SRC } from "@/data/assets"
 import { PERSONAS, type PersonaId, type ViewId } from "@/data/reference-data"
@@ -31,6 +32,9 @@ function useNavItems() {
   return { work, all: views }
 }
 
+/** Demo-only menus (User journeys, Demo settings, Install demo), hidden for stakeholder reviews. Set to true to show them. */
+const SHOW_DEMO_MENUS = false
+
 function InstallButton({ dark }: { dark?: boolean }) {
   const install = useInstall()
   const [showHelp, setShowHelp] = useState(false)
@@ -59,7 +63,7 @@ function InstallButton({ dark }: { dark?: boolean }) {
 }
 
 /** Persona and language pickers, shared by the sidebar (dark) and the mobile profile sheet. */
-function DemoControls({ dark }: { dark?: boolean }) {
+function DemoControls({ dark, persona = true }: { dark?: boolean; persona?: boolean }) {
   const s = useDemo(st => st.s)
   const setPersona = useDemo(st => st.setPersona)
   const setLang = useDemo(st => st.setLang)
@@ -67,7 +71,7 @@ function DemoControls({ dark }: { dark?: boolean }) {
   const trigger = cn("h-11 w-full rounded-xl", dark && "border-nav-2 bg-nav-2 text-nav-foreground [&_svg]:text-nav-muted")
   return (
     <div className="space-y-3">
-      {!s.settings.hideViewAs && (
+      {persona && !s.settings.hideViewAs && (
         <label className="block space-y-1.5">
           <span className={cn("text-xs font-medium tracking-wide uppercase", dark ? "text-nav-muted" : "text-muted-foreground")}>{t("viewingAs")}</span>
           <Select value={s.persona} onValueChange={v => setPersona(v as PersonaId)}>
@@ -101,14 +105,51 @@ function DemoControls({ dark }: { dark?: boolean }) {
   )
 }
 
+/** The signed-in person; in the demo it also switches persona, replacing the separate "Viewing as" picker. */
+function PersonaCard() {
+  const persona = useDemo(st => st.s.persona)
+  const setPersona = useDemo(st => st.setPersona)
+  const { t } = useT()
+  const P = PERSONAS[persona]
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${t("viewingAs")}: ${P.name}`}
+          className="flex w-full items-center gap-3 rounded-2xl bg-nav-2 p-3 text-left outline-none transition-colors hover:bg-nav-2/70 focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=open]:ring-2 data-[state=open]:ring-citron/60"
+        >
+          <Avatar initials={P.initials} />
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="truncate font-medium">{P.name}</div>
+            <div className="truncate text-[13px] text-nav-muted">{P.role}</div>
+          </div>
+          <ChevronsUpDown className="size-4 shrink-0 text-nav-muted" aria-hidden />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="top" align="start" className="w-[248px]">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">{t("viewingAs")}</DropdownMenuLabel>
+        {PERSONA_IDS.map(id => (
+          <DropdownMenuItem key={id} onSelect={() => setPersona(id)} className="gap-3 py-2">
+            <Avatar initials={PERSONAS[id].initials} className="size-7 text-[11px]" />
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block truncate font-medium">{PERSONAS[id].name}</span>
+              <span className="block truncate text-xs text-muted-foreground">{PERSONAS[id].label.split(" · ").slice(1).join(" · ")}</span>
+            </span>
+            {id === persona && <Check className="size-4 text-primary" aria-hidden />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 function Sidebar() {
   const view = useDemo(st => st.s.view)
-  const persona = useDemo(st => st.s.persona)
   const go = useDemo(st => st.go)
   const openSettings = useUI(st => st.setSettingsOpen)
   const { t, at } = useT()
   const { work } = useNavItems()
-  const P = PERSONAS[persona]
   const item = (v: ViewId) => {
     const Icon = VIEW_ICONS[v], on = view === v
     return (
@@ -141,26 +182,22 @@ function Sidebar() {
           <div className="px-3 pb-1 text-xs font-medium tracking-wide text-nav-muted uppercase">{t("timekeeping")}</div>
           {work.map(item)}
         </div>
-        <div className="space-y-1">
-          <div className="px-3 pb-1 text-xs font-medium tracking-wide text-nav-muted uppercase">{t("delivery")}</div>
-          {item("journeys")}
-        </div>
+        {SHOW_DEMO_MENUS && (
+          <div className="space-y-1">
+            <div className="px-3 pb-1 text-xs font-medium tracking-wide text-nav-muted uppercase">{t("delivery")}</div>
+            {item("journeys")}
+          </div>
+        )}
       </nav>
       <div className="mt-auto space-y-4">
-        <div className="flex items-center gap-3 rounded-2xl bg-nav-2 p-3">
-          <Avatar initials={P.initials} />
-          <div className="min-w-0 leading-tight">
-            <div className="truncate font-medium">{P.name}</div>
-            <div className="truncate text-[13px] text-nav-muted">{P.role}</div>
-          </div>
-        </div>
-        <DemoControls dark />
-        <div className="space-y-0.5">
+        <PersonaCard />
+        <DemoControls dark persona={false} />
+        {SHOW_DEMO_MENUS && <div className="space-y-0.5">
           <button type="button" onClick={() => openSettings(true)} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-nav-muted transition-colors hover:bg-nav-2 hover:text-nav-foreground">
             <Settings2 className="size-[18px]" aria-hidden /> {at("demoSettings")}
           </button>
           <InstallButton dark />
-        </div>
+        </div>}
       </div>
     </aside>
   )
@@ -229,7 +266,7 @@ function ProfileSheet() {
   const go = useDemo(st => st.go)
   const { t, at } = useT()
   const { work, all } = useNavItems()
-  const extra = all.filter(v => !work.slice(0, 4).includes(v))
+  const extra = all.filter(v => !work.slice(0, 4).includes(v) && (SHOW_DEMO_MENUS || v !== "journeys"))
   return (
     <ResponsivePanel open={open} onOpenChange={setOpen} title={at("more")}>
       <div className="space-y-5">
@@ -246,12 +283,12 @@ function ProfileSheet() {
           })}
         </div>
         <DemoControls />
-        <div className="overflow-hidden rounded-2xl border bg-card">
+        {SHOW_DEMO_MENUS && <div className="overflow-hidden rounded-2xl border bg-card">
           <button type="button" onClick={() => { setOpen(false); openSettings(true) }} className="flex min-h-13 w-full items-center gap-3 border-b px-4 py-3 text-left text-[15px] font-medium active:bg-muted">
             <Settings2 className="size-[18px] text-muted-foreground" aria-hidden /> {at("demoSettings")}
           </button>
           <div className="px-1 py-1"><InstallButton /></div>
-        </div>
+        </div>}
       </div>
     </ResponsivePanel>
   )

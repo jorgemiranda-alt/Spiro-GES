@@ -286,7 +286,7 @@ export default function ProjectHoursView() {
   }
   const copyLastWeek = () => {
     const prev = s.grid[emp]?.[periodKey(off - 1)]
-    if (!prev) { toast("No rows last week to copy."); return }
+    if (!prev) { toast(at("copyNoLastWeek")); return }
     let added = 0, skipped = 0
 
     mutate(x => {
@@ -308,7 +308,7 @@ export default function ProjectHoursView() {
         added++
       })
     })
-    toast.success(`Copied ${added} row${added === 1 ? "" : "s"}${skipped ? `, ${skipped} closed project${skipped > 1 ? "s" : ""} skipped` : ""}.`)
+    toast.success([at("copiedRows", { n: added }), skipped ? at("copiedSkipped", { n: skipped }) : ""].filter(Boolean).join(" "))
   }
 
   const isSal = P.type === "salary"
@@ -326,7 +326,7 @@ export default function ProjectHoursView() {
 
       {off === 0 && missing > 0 && (
         <Highlightable hl="reminder">
-          <Notice tone="warning"><b>Reminder:</b> {missing} weekday{missing > 1 ? "s" : ""} this week {missing > 1 ? "have" : "has"} no hours yet. Enter them before payroll closes.</Notice>
+          <Notice tone="warning"><b>{at("reminderLabel")}:</b> {at("reminderDays", { n: missing })}</Notice>
         </Highlightable>
       )}
       {g.rows.some(r => r.status === "Rejected") && (
