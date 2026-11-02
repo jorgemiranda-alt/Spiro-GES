@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import type { GridRow } from "@/store/types"
 import { AddRowPanel, ManageProjectsPanel } from "./panels"
+import { ProjectSearch } from "./project-search"
 
 interface RowProps {
   row: GridRow
@@ -122,7 +123,7 @@ function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridR
           <tbody>
             {byProject(rows).flatMap(({ proj, lines, total }) => [
               // The project has its own line, so each task line below lines up with its own hours.
-              <tr key={`${proj}-head`} className="border-t">
+              <tr key={`${proj}-head`} data-project={proj} className="border-t outline-none">
                 <th scope="rowgroup" colSpan={cols.length + 2} className="sticky left-0 bg-card px-4 pt-3 pb-1 text-left font-semibold">
                   {proj} <span className="font-normal text-muted-foreground">{PROJECTS[proj].name}</span>
                 </th>
@@ -177,7 +178,7 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
       {byProject(rows).map(({ proj, lines, total }) => {
         const p = PROJECTS[proj]
         return (
-          <li key={proj} className={cn("rounded-2xl border bg-card p-4 shadow-soft sm:p-5", lines.some(r => r.status === "Rejected") && "border-destructive/40")}>
+          <li key={proj} data-project={proj} className={cn("rounded-2xl border bg-card p-4 shadow-soft outline-none sm:p-5",lines.some(r => r.status === "Rejected") && "border-destructive/40")}>
             <div className="flex items-start gap-3">
               <span className={cn("mt-2 size-2 shrink-0 rounded-full", total ? "bg-success" : "bg-input")} aria-hidden />
               <div className="min-w-0 flex-1">
@@ -371,6 +372,8 @@ export default function ProjectHoursView() {
           <Button size="sm" onClick={() => setAddOpen(true)} disabled={locked}><Plus /> {at("addProject")}</Button>
         </div>
       </div>
+
+      <ProjectSearch emp={emp} isShown={c => visible.some(r => r.proj === c)} className="max-w-md" />
 
       <Highlightable hl="grid">
         {modern ? (

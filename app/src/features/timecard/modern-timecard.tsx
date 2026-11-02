@@ -16,6 +16,7 @@ import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/store/store"
 import type { DemoState, ModernEntry } from "@/store/types"
+import { ProjectSearch } from "../project-hours/project-search"
 import { isPunchBased, PunchDay } from "./punch-day"
 
 /** The entry shown for a project on a day: what the employee typed, else what the punches imply. */
@@ -72,7 +73,7 @@ function ProjectCard({ emp, day, code, disabled }: { emp: string; day: Day; code
   const update = (patch: Partial<ModernEntry>) => setEntry(day.date, code, patch, derived)
 
   return (
-    <li className="rounded-2xl border bg-card p-4 shadow-soft transition-shadow sm:p-5">
+    <li data-project={code} className="rounded-2xl border bg-card p-4 shadow-soft outline-none transition-shadow sm:p-5">
       <div className="flex items-start gap-3">
         <span className={cn("mt-2 size-2 shrink-0 rounded-full", hours ? "bg-success" : "bg-input")} aria-hidden />
         <div className="min-w-0 flex-1">
@@ -274,6 +275,8 @@ export function ModernTimecard({ emp, days, locked }: { emp: string; days: Day[]
             <Button size="sm" onClick={() => setAddOpen(true)}><Plus /> {at("addProject")}</Button>
           </div>}
         </div>
+
+        {!punch && <ProjectSearch emp={emp} isShown={c => shown.includes(c)} className="max-w-md" />}
 
         {!punch && future && <Notice tone="neutral">This day is in the future. Time can be entered once the day starts.</Notice>}
         {locked && <Notice tone="success">This timecard is approved and read-only.</Notice>}
