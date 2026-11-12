@@ -1,11 +1,12 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Switch } from "@/components/ui/switch"
 import { ResponsivePanel } from "@/components/app/responsive-panel"
 import { Notice, StatusPill } from "@/components/app/status"
-import { LABOR, PAYCODES, PROJECTS } from "@/data/reference-data"
+import { ACTIVITIES, APPROVERS, LABOR, OTHER_TIME, PAYCODES, PROJECTS } from "@/data/reference-data"
 import { assigned, isHidden, laborDefaults, startNote } from "@/lib/engine"
 import { useT } from "@/lib/i18n"
 import { useDemo } from "@/store/store"
@@ -66,12 +67,14 @@ function Field({ label, required, children }: { label: string; required?: boolea
 }
 
 /** "Add new": a project row with its transfer and labor categories (UKG Project › Transfer › Labor categories). */
-export function AddRowPanel({ open, onOpenChange, onAdded }: { open: boolean; onOpenChange: (v: boolean) => void; onAdded: (id: string) => void }) {
+export function AddRowPanel({ open, onOpenChange, onAdded, initialKind = "project" }: { open: boolean; onOpenChange: (v: boolean) => void; onAdded: (id: string) => void; initialKind?: "project" | "other" }) {
   const s = useDemo(st => st.s)
   const addRow = useDemo(st => st.addGridRow)
   const { at, t } = useT()
   const emp = s.persona
   const d = laborDefaults(emp)
+  // Project work is billed through Odoo; Other time is non-billable and goes to UKG only.
+  const [kind, setKind] = useState(initialKind)
   const [proj, setProj] = useState("")
   const [task, setTask] = useState("")
   const [paycode, setPaycode] = useState(PAYCODES[0])
@@ -79,25 +82,31 @@ export function AddRowPanel({ open, onOpenChange, onAdded }: { open: boolean; on
   const [func, setFunc] = useState(d.func || "")
   const [err, setErr] = useState("")
   const [busy, setBusy] = useState(false)
-  const pr = proj ? PROJECTS[proj] : null
+  const [opened, setOpened] = useState(open)
+  if (open !== opened) { setOpened(open); if (open) { setKind(initialKind); setProj(""); setTask(""); setErr("") } }
+  const other = kind === "other"
+  const target = other ? OTHER_TIME : proj
+  const pr = target ? PROJECTS[target] : null
+  const activity = other ? ACTIVITIES.flatMap(g => g.items.length ? g.items.map(i => ({ v: `${g.group} › ${i.name}`, def: i.def })) : [{ v: g.group, def: g.def || "" }]).find(a => a.v === task) : undefined
   const codes = assigned(s, emp)
 
   const apply = () => {
-    if (!proj) { setErr("Choose a project."); return }
-    if (pr?.taskReq && !task) { setErr(`${proj} requires a task.`); return }
+    if (other && !task) { setErr("Choose an activity."); return }
+    if (!other && !proj) { setErr("Choose a project."); return }
+    if (!other && pr?.taskReq && !task) { setErr(`${proj} requires a task.`); return }
     setBusy(true)
     setErr("")
     // UKG validates the labor entry before the row appears.
     setTimeout(() => {
-      const problem = addRow({ proj, task, paycode, tc, func })
+      const problem = addRow({ proj: target, task, paycode, tc, func })
       setBusy(false)
       if (problem) { setErr(problem); return }
-      toast.success(`${proj} added.`)
+      toast.success(other ? `${task} added as non-billable time.` : `${proj} added.`)
       onOpenChange(false)
       setProj(""); setTask("")
       const week = useDemo.getState().s.grid[emp]
       const rows = week ? Object.values(week).flatMap(w => w.rows) : []
-      const added = rows.filter(r => r.proj === proj).at(-1)
+      const added = rows.filter(r => r.proj === target).at(-1)
       if (added) onAdded(added.id)
     }, 500)
   }
@@ -106,17 +115,42 @@ export function AddRowPanel({ open, onOpenChange, onAdded }: { open: boolean; on
     <ResponsivePanel
       open={open}
       onOpenChange={onOpenChange}
-      title={at("addProject")}
-      description="Add a project row with its labor categories. You then enter hours on that row."
+      title="Add time"
+      description={other ? "Non-billable work that isn't part of a client project, like meetings, training or admin." : "Add a project row with its labor categories. You then enter hours on that row."}
       footer={
         <>
           <Button variant="outline" size="lg" onClick={() => onOpenChange(false)}>{t("cancel")}</Button>
-          <Button size="lg" onClick={apply} disabled={busy}>{busy ? "Checking with UKG…" : at("addProject")}</Button>
+          <Button size="lg" onClick={apply} disabled={busy}>{busy ? "Checking with UKG…" : other ? "Add other time" : at("addProject")}</Button>
         </>
       }
     >
       <div className="space-y-4">
+        <ToggleGroup type="single" variant="outline" value={kind} onValueChange={v => { if (v) { setKind(v as typeof kind); setTask(""); setErr("") } }} className="w-full" aria-label="Type of time">
+          <ToggleGroupItem value="project" className="h-11 flex-1">Project work</ToggleGroupItem>
+          <ToggleGroupItem value="other" className="h-11 flex-1">Other time (non-billable)</ToggleGroupItem>
+        </ToggleGroup>
         {err && <Notice tone="danger">{err}</Notice>}
+        {other ? (
+          <>
+            <Field label="Activity" required>
+              <Select value={task} onValueChange={setTask}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
+                <SelectContent className="max-h-80">
+                  {ACTIVITIES.map(g => g.items.length ? (
+                    <SelectGroup key={g.group}>
+                      <SelectLabel>{g.group}</SelectLabel>
+                      {g.items.map(i => <SelectItem key={i.name} value={`${g.group} › ${i.name}`} className="pl-4">{i.name}</SelectItem>)}
+                    </SelectGroup>
+                  ) : (
+                    <SelectItem key={g.group} value={g.group}>{g.group}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            {activity?.def && <p className="-mt-2 text-sm text-muted-foreground">{activity.def}</p>}
+            <p className="text-sm text-muted-foreground">No project needed. Approved by your manager ({APPROVERS[PROJECTS[OTHER_TIME].approver]}) and sent to UKG, not Odoo.</p>
+          </>
+        ) : (<>
         <Field label={t("project")} required>
           <Select value={proj} onValueChange={v => { setProj(v); setTask(PROJECTS[v].taskReq ? "" : PROJECTS[v].tasks[0]) }}>
             <SelectTrigger className="w-full"><SelectValue placeholder="Choose a project" /></SelectTrigger>
@@ -156,6 +190,7 @@ export function AddRowPanel({ open, onOpenChange, onAdded }: { open: boolean; on
           </Select>
         </Field>
         <p className="text-sm text-muted-foreground">Transfer charges these hours to a project and task. Only labor categories are required in this release.</p>
+        </>)}
       </div>
     </ResponsivePanel>
   )

@@ -13,18 +13,33 @@ export interface Persona {
 }
 export interface LaborProject { v: string; l: string; taskReq: boolean; tasks: string[] }
 export interface LaborDefaults { location: string; project: string; task: string; tc: string; func: string }
+/** Non-billable activities (GES "Activity List"): level 1 group, level 2 activity. Sent to UKG as labor categories, not to Odoo. */
+export const OTHER_TIME = "OTHER"
+export interface Activity { name: string; def: string }
+export const ACTIVITIES: { group: string; def?: string; items: Activity[] }[] = [
+ {group:"Creative And Design Support",items:[{name:"Client",def:"Client specific"},{name:"Agency",def:"Spiro internal ask"},{name:"Enterprise",def:"GES internal ask"}]},
+ {group:"Ops Support - Shop",items:[{name:"Inv or Materials or Maint",def:"In shop taking inventory, material counts, show maintenance"},{name:"Light Duty",def:"Worker's comp"},{name:"Union Minimum",def:"Variance hours worked v. contract"}]},
+ {group:"Ops Support - Admin",items:[{name:"Admin Support",def:"Paperwork, misc tasks"},{name:"Meeting or Training",def:"Safety meetings, sup training, etc."},{name:"Travel",def:"Travel to/from showsite"}]},
+ {group:"Ops Support - Staff",items:[{name:"Field Sup or Shop or Asst City Mgr",def:"Working role"}]},
+ {group:"Client Account Management",items:[{name:"Meetings",def:"Non-project: client calls, meetings, QBRs, etc."},{name:"Client Svc Gen Support",def:"AM support of AD"},{name:"P&L management",def:"Client-level financial tracking/tasks"}]},
+ {group:"Department Management",items:[{name:"Resourcing",def:"Team resource management, allocations, forecasting"},{name:"Financial",def:"Department/OH financial tracking: budget build, forecasting, etc."},{name:"Issue Resolution",def:"Addressing elevated department issues"}]},
+ {group:"Ways of Working",items:[{name:"Workflow",def:"Building end-to-end solutions for any part of the business"},{name:"Policy or Procedures",def:"Building SOPs or procedural steps for a specific need"},{name:"System",def:"Support for system implementation or enhancements"}]},
+ {group:"Meetings",items:[{name:"Town Hall",def:"Enterprise or agency"},{name:"Department",def:"Leadership, all team, general briefing"},{name:"1-1",def:"Direct report, manager, performance reviews, etc."}]},
+ {group:"General Admin",items:[{name:"Email And Data Entry",def:"Email; system records maintenance/data entry"},{name:"Travel or Expense",def:"Booking travel, expenses"},{name:"Travel",def:"Traveling"}]},
+ {group:"IT And Systems Support",def:"Computer issues, GSD tickets/support",items:[]},
+ {group:"Culture",items:[{name:"Award Submissions",def:"Spiro.gives, Spotlight awards, etc."},{name:"ERG Emp Resource Grps",def:"Prism.Pride, Green Team/sustainability, etc."}]},
+ {group:"Onboarding And Training",items:[{name:"Orientation or New Hire",def:"System set-up, role-based training, etc."},{name:"Enterprise Training",def:"Mandatory training (IT, P&C, compliance/safety, etc.)"},{name:"Skills Training",def:"Spiro.YOU: personal development, soft skills, leadership"}]},
+ {group:"Downtime",def:"No deliverables, capacity to support",items:[]},
+]
 export const PROJECTS: Record<string, Project> = {
  "PRJ-4821":{name:"Global Brand Activation",client:"Northwind Health",show:"HLTH 2026",umbrella:"Northwind Program",tasks:["Client delivery","Booth install","Project management"],taskReq:false,approver:"oliver",est:400,used:352,active:true},
  "PRJ-4908":{name:"Creative Production Support",client:"Contoso Retail",show:"Retail Summit",umbrella:"Contoso Retainer",tasks:["Production support","Graphics"],taskReq:false,approver:"oliver",est:220,used:120,active:true},
- "PRJ-5012":{name:"Internal Operations",client:"Spiro (non-billable)",show:"—",umbrella:"",tasks:["Operations","Training"],taskReq:false,approver:"camille",est:0,used:0,active:true,nonBill:true},
  "PRJ-4700":{name:"Spring Summit Build",client:"Northwind Health",show:"Spring Summit",umbrella:"Northwind Program",tasks:["Booth install"],taskReq:false,approver:"oliver",est:120,used:118,active:false},
  "BER-1102":{name:"Berlin Expo Build",client:"Fabrikam Auto",show:"IAA Berlin",umbrella:"",tasks:["Build","Load-out"],taskReq:false,approver:"jonas",est:900,used:610,active:true},
  "MUC-2077":{name:"Munich Client Kit",client:"Tailspin",show:"bauma",umbrella:"",tasks:["Kitting","Packing"],taskReq:false,approver:"jonas",est:300,used:140,active:true},
- "DE-OPS":{name:"Warehouse Operations",client:"Spiro (non-billable)",show:"—",umbrella:"",tasks:["Safety briefing","Cleaning"],taskReq:false,approver:"jonas",est:0,used:0,active:true,nonBill:true},
  "MUC-1999":{name:"Munich Auto Show",client:"Fabrikam Auto",show:"Auto Show 2025",umbrella:"",tasks:["Build"],taskReq:false,approver:"jonas",est:500,used:500,active:false},
  "PL-8804":{name:"Warsaw Retail Event",client:"Contoso Retail",show:"Warsaw Retail Days",umbrella:"Contoso Retainer",tasks:["Detailing","Install","Supervision"],taskReq:true,approver:"oliver",est:160,used:110,active:true},
  "PL-8810":{name:"Supplier Coordination",client:"Contoso Retail",show:"Warsaw Retail Days",umbrella:"Contoso Retainer",tasks:["Supplier calls","Quality checks"],taskReq:true,approver:"oliver",est:80,used:50,active:true},
- "PL-OPS":{name:"Production Operations",client:"Spiro (non-billable)",show:"—",umbrella:"",tasks:["Admin","Training"],taskReq:false,approver:"camille",est:0,used:0,active:true,nonBill:true},
  "PL-8650":{name:"Poznań Trade Fair",client:"Litware",show:"Poznań Fair",umbrella:"",tasks:["Install"],taskReq:true,approver:"oliver",est:90,used:88,active:false},
  "PRJ-5310":{name:"Retail Experience Refresh",client:"Contoso Retail",show:"Flagship refresh",umbrella:"Contoso Retainer",tasks:["Concept development","Client workshop"],taskReq:false,approver:"oliver",est:260,used:150,active:true},
  "PRJ-5266":{name:"EMEA Brand Strategy",client:"Northwind Health",show:"EMEA roadshow",umbrella:"Northwind Program",tasks:["Client workshop","Strategy"],taskReq:false,approver:"oliver",est:140,used:60,active:true},
@@ -32,14 +47,15 @@ export const PROJECTS: Record<string, Project> = {
  "PL-8933":{name:"Łódź Pop-up Store",client:"Contoso Retail",show:"Łódź Pop-up",umbrella:"Contoso Retainer",tasks:["Concept","Install"],taskReq:false,approver:"oliver",est:90,used:0,active:true,startIn:45},
  "PRJ-5400":{name:"Q1 Campaign Planning",client:"Northwind Health",show:"Q1 launch",umbrella:"Northwind Program",tasks:["Strategy","Client workshop"],taskReq:false,approver:"oliver",est:200,used:0,active:true,startIn:90},
  "PRJ-5412":{name:"Summer Launch Concept",client:"Contoso Retail",show:"Summer launch",umbrella:"Contoso Retainer",tasks:["Concept development"],taskReq:false,approver:"oliver",est:110,used:0,active:true,startIn:30},
- "PRJ-5204":{name:"Leadership & Coaching",client:"Spiro (non-billable)",show:"—",umbrella:"",tasks:["Internal meeting","Coaching"],taskReq:false,approver:"camille",est:0,used:0,active:true,nonBill:true}
+ /* Non-billable "Other time": not an Odoo project. Activities come from UKG (GES Activity List). */
+ [OTHER_TIME]:{name:"Other time",client:"Non-billable · UKG",show:"—",umbrella:"",tasks:ACTIVITIES.flatMap(g => g.items.length ? g.items.map(i => `${g.group} › ${i.name}`) : [g.group]),taskReq:true,approver:"camille",est:0,used:0,active:true,nonBill:true}
 };
 export const APPROVERS: Record<string, string> = {oliver:"Oliver Grant",camille:"Camille Dubois",jonas:"Jonas Richter"};
 export const PERSONAS: Record<PersonaId, Persona> = {
- ava:{name:"Ava Mitchell",short:"Ava",initials:"AM",label:"Ava Mitchell · US · Hourly (punch)",role:"Client Production Coordinator",country:"US",type:"hourly",lang:"en",projects:["PRJ-4821","PRJ-4908","PRJ-5012","PRJ-4700"],sched:{start:"08:00",end:"17:00",brk:30,days:[1,2,3,4,5]},views:["home","punch","timecard"],land:"punch",ot:true},
- lukas:{name:"Lukas Weber",short:"Lukas",initials:"LW",label:"Lukas Weber · DE · Warehouse (kiosk)",role:"Warehouse Production Specialist",country:"DE",type:"hourly",lang:"de",projects:["BER-1102","MUC-2077","DE-OPS","MUC-1999"],badge:"40-2231",sched:{start:"07:00",end:"15:30",brk:30,days:[1,2,3,4,5]},views:["home","kiosk","timecard"],land:"kiosk",ot:false},
- zofia:{name:"Zofia Kowalska",short:"Zofia",initials:"ZK",label:"Zofia Kowalska · PL · Hourly (grid)",role:"Production Coordinator",country:"PL",type:"hourly",lang:"pl",projects:["PL-8804","PL-8810","PL-OPS","PL-8650","PL-8920","PL-8933"],sched:{start:"08:00",end:"16:00",brk:30,days:[1,2,3,4,5]},views:["home","grid"],land:"grid",ot:false},
- maya:{name:"Maya Chen",short:"Maya",initials:"MC",label:"Maya Chen · UK · Salaried",role:"Senior Creative Director",country:"UK",type:"salary",lang:"en",projects:["PRJ-5310","PRJ-5266","PRJ-5204","PRJ-5400","PRJ-5412"],sched:null,views:["home","grid"],land:"grid",ot:false},
+ ava:{name:"Ava Mitchell",short:"Ava",initials:"AM",label:"Ava Mitchell · US · Hourly (punch)",role:"Client Production Coordinator",country:"US",type:"hourly",lang:"en",projects:["PRJ-4821","PRJ-4908","PRJ-4700"],sched:{start:"08:00",end:"17:00",brk:30,days:[1,2,3,4,5]},views:["home","punch","timecard"],land:"punch",ot:true},
+ lukas:{name:"Lukas Weber",short:"Lukas",initials:"LW",label:"Lukas Weber · DE · Warehouse (kiosk)",role:"Warehouse Production Specialist",country:"DE",type:"hourly",lang:"de",projects:["BER-1102","MUC-2077","MUC-1999"],badge:"40-2231",sched:{start:"07:00",end:"15:30",brk:30,days:[1,2,3,4,5]},views:["home","kiosk","timecard"],land:"kiosk",ot:false},
+ zofia:{name:"Zofia Kowalska",short:"Zofia",initials:"ZK",label:"Zofia Kowalska · PL · Hourly (grid)",role:"Production Coordinator",country:"PL",type:"hourly",lang:"pl",projects:["PL-8804","PL-8810","PL-8650","PL-8920","PL-8933"],sched:{start:"08:00",end:"16:00",brk:30,days:[1,2,3,4,5]},views:["home","grid"],land:"grid",ot:false},
+ maya:{name:"Maya Chen",short:"Maya",initials:"MC",label:"Maya Chen · UK · Salaried",role:"Senior Creative Director",country:"UK",type:"salary",lang:"en",projects:["PRJ-5310","PRJ-5266","PRJ-5400","PRJ-5412"],sched:null,views:["home","grid"],land:"grid",ot:false},
  oliver:{name:"Oliver Grant",short:"Oliver",initials:"OG",label:"Oliver Grant · Manager",role:"Manager",country:"UK",type:"approver",lang:"en",projects:[],sched:null,views:["home"],land:"home",ot:false}
 };
 export const REASONS = ["Forgot to punch","Wrong time recorded","Wrong project","Device or network issue","Approved by manager"];

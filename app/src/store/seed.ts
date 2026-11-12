@@ -3,7 +3,7 @@ import { timeOffSeed } from "@/data/time-off"
 import { periodDays, periodKey, todayStr } from "@/lib/dates"
 import type { Approval, DemoState, GridRow, InboxItem, Punch, PunchType } from "./types"
 
-export const STORE_KEY = "spiro-demo-react-v1"
+export const STORE_KEY = "spiro-demo-react-v2"
 
 const rid = (p: string) => p + Math.random().toString(36).slice(2, 9)
 
@@ -31,7 +31,7 @@ export function seed(): DemoState {
   A.push(...seedDay(prev[0], [["07:58", "IN", "PRJ-4821", "Client delivery"], ["12:00", "BRK_S"], ["12:30", "BRK_E"], ["13:30", "XFER", "PRJ-4908", "Production support"], ["17:00", "OUT"]]))
   A.push(...seedDay(prev[1], [["08:12", "IN", "PRJ-4821", "Booth install"], ["12:00", "BRK_S"], ["12:30", "BRK_E"], ["17:15", "OUT"]]))
   A.push(...seedDay(prev[2], [["07:55", "IN", "PRJ-4908", "Graphics"], ["12:00", "BRK_S"], ["12:20", "BRK_E"], ["16:45", "OUT"]]))
-  A.push(...seedDay(prev[3], [["08:00", "IN", "PRJ-4821", "Client delivery"], ["12:00", "BRK_S"], ["12:30", "BRK_E"], ["13:00", "XFER", "PRJ-5012", "Operations"]]))
+  A.push(...seedDay(prev[3], [["08:00", "IN", "PRJ-4821", "Client delivery"], ["12:00", "BRK_S"], ["12:30", "BRK_E"], ["13:00", "XFER", "OTHER", "Ops Support - Admin › Admin Support"]]))
   A.push(...seedDay(prev[4], [["08:00", "IN", "PRJ-4821", "Client delivery"], ["12:00", "BRK_S"], ["12:30", "BRK_E"], ["16:00", "OUT"]]))
   st.comments.ava[prev[1]] = "Client install ran late at the venue."
   cur.slice(0, 5).forEach(d => {
@@ -59,9 +59,9 @@ export function seed(): DemoState {
     status, note: "", archived: false,
   })
   st.grid.zofia[periodKey(-1)] = { rows: [row("PL-8804", "Detailing", [6, 6, 6, 6, 6], "Approved"), row("PL-8650", "Install", [2, 2, 1.5, 2, ""], "Approved"), row("PL-8810", "Supplier calls", ["", "", 0.5, "", 2], "Approved")] }
-  st.grid.zofia[periodKey(0)] = { rows: [row("PL-8804", "Detailing", [7.5, 8]), row("PL-OPS", "Admin", [0.5, ""])] }
-  st.grid.maya[periodKey(-1)] = { rows: [row("PRJ-5310", "Concept development", [4, 5, 4, 3, 4], "Recorded"), row("PRJ-5266", "Client workshop", [2.5, 2, 3, 3, 2], "Recorded"), row("PRJ-5204", "Internal meeting", [1.5, 1, 1, 2, 2], "Recorded")] }
-  st.grid.maya[periodKey(0)] = { rows: [row("PRJ-5310", "Concept development", [4, 5]), row("PRJ-5266", "Client workshop", [2.5, 1]), row("PRJ-5204", "Internal meeting", [1.5, 2])] }
+  st.grid.zofia[periodKey(0)] = { rows: [row("PL-8804", "Detailing", [7.5, 8]), row("OTHER", "General Admin › Email And Data Entry", [0.5, ""])] }
+  st.grid.maya[periodKey(-1)] = { rows: [row("PRJ-5310", "Concept development", [4, 5, 4, 3, 4], "Recorded"), row("PRJ-5266", "Client workshop", [2.5, 2, 3, 3, 2], "Recorded"), row("OTHER", "Meetings › Department", [1.5, 1, 1, 2, 2], "Recorded")] }
+  st.grid.maya[periodKey(0)] = { rows: [row("PRJ-5310", "Concept development", [4, 5]), row("PRJ-5266", "Client workshop", [2.5, 1]), row("OTHER", "Meetings › Department", [1.5, 2])] }
 
   // Approval queue for other employees.
   const ap = (emp: string, empName: string, off: number, proj: string, task: string, days: number[], status: Approval["status"] = "Pending"): Approval => ({

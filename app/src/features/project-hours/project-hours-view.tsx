@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, Send, SlidersHorizontal } from "lucide-react"
+import { Coffee, Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, Send, SlidersHorizontal } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -9,7 +9,7 @@ import { Highlightable, JourneyTags, PageHeader } from "@/components/app/common"
 import { LayoutToggle } from "@/components/app/layout-toggle"
 import { MetaTag, Notice, StatusPill, rowTone } from "@/components/app/status"
 import { WeekNav } from "@/components/app/week-nav"
-import { PERSONAS, PROJECTS } from "@/data/reference-data"
+import { OTHER_TIME, PERSONAS, PROJECTS } from "@/data/reference-data"
 import { fmtClock, fmtDay, fmtDayShort, fmtH, fmtWeekday, hm, parseYmd, periodDays, periodKey, todayStr } from "@/lib/dates"
 import { assigned, gridValidate, gridWeekOf, hiddenCount, isHidden, rowTotal, type GridValidation } from "@/lib/engine"
 import { useT } from "@/lib/i18n"
@@ -81,8 +81,15 @@ function TaskSelect({ row, siblings = [], editable, invalid, quiet }: { row: Gri
 function byProject(rows: GridRow[]) {
   const groups = new Map<string, GridRow[]>()
   rows.forEach(r => groups.set(r.proj, [...(groups.get(r.proj) || []), r]))
-  return [...groups.entries()].map(([proj, lines]) => ({ proj, lines, total: lines.reduce((a, r) => a + rowTotal(r.h), 0) }))
+  return [...groups.entries()]
+    .sort(([a], [b]) => Number(!!PROJECTS[a].nonBill) - Number(!!PROJECTS[b].nonBill))
+    .map(([proj, lines]) => ({ proj, lines, total: lines.reduce((a, r) => a + rowTotal(r.h), 0) }))
 }
+
+/** Text label, not color alone, so billable and non-billable read the same for everyone. */
+const BillTag = ({ proj }: { proj: string }) => PROJECTS[proj].nonBill
+  ? <span className="ml-2 inline-flex rounded-full border border-dashed px-2 py-0.5 align-middle text-xs font-medium text-muted-foreground">Non-billable</span>
+  : null
 
 /** Adds a line for a task not yet on this project, picked from a short menu. */
 function AddTaskButton({ proj, lines, disabled }: { proj: string; lines: GridRow[]; disabled: boolean }) {
@@ -125,7 +132,7 @@ function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridR
               // The project has its own line, so each task line below lines up with its own hours.
               <tr key={`${proj}-head`} data-project={proj} className="border-t outline-none">
                 <th scope="rowgroup" colSpan={cols.length + 2} className="sticky left-0 bg-card px-4 pt-3 pb-1 text-left font-semibold">
-                  {proj} <span className="font-normal text-muted-foreground">{PROJECTS[proj].name}</span>
+                  {proj === OTHER_TIME ? PROJECTS[proj].name : <>{proj} <span className="font-normal text-muted-foreground">{PROJECTS[proj].name}</span></>}<BillTag proj={proj} />
                 </th>
               </tr>,
               ...lines.map(r => (
@@ -149,7 +156,7 @@ function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridR
                 <th scope="row" className="sticky left-0 z-10 bg-card py-1 pr-4 pl-7 text-left align-middle font-normal">
                   <AddTaskButton proj={proj} lines={lines} disabled={locked} />
                 </th>
-                <td colSpan={cols.length} className="px-1 py-1 text-right align-middle text-muted-foreground">{lines.length > 1 ? at("projectTotal") : ""}</td>
+                <td colSpan={cols.length} className="px-1 py-1 text-right align-middle text-muted-foreground">{lines.length > 1 ? (PROJECTS[proj].nonBill ? "Non-billable total" : at("projectTotal")) : ""}</td>
                 <td className="px-4 py-1 text-right align-middle font-semibold tabular-nums">{lines.length > 1 ? fmtH(total, lang) : ""}</td>
               </tr>,
             ])}
@@ -182,10 +189,10 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
             <div className="flex items-start gap-3">
               <span className={cn("mt-2 size-2 shrink-0 rounded-full", total ? "bg-success" : "bg-input")} aria-hidden />
               <div className="min-w-0 flex-1">
-                <h3 className="text-[15px] leading-snug font-semibold"><span className="tabular-nums">{proj}</span> · {p.name}</h3>
-                <p className="truncate text-sm text-muted-foreground">{[p.client, p.show !== "—" && p.show].filter(Boolean).join(" · ")}</p>
+                <h3 className="text-[15px] leading-snug font-semibold">{proj === OTHER_TIME ? p.name : <><span className="tabular-nums">{proj}</span> · {p.name}</>}<BillTag proj={proj} /></h3>
+                <p className="truncate text-sm text-muted-foreground">{p.nonBill ? "Meetings, training, admin · approved by your manager" : [p.client, p.show !== "—" && p.show].filter(Boolean).join(" · ")}</p>
               </div>
-              <label className="flex shrink-0 flex-col items-center gap-0.5 text-[11px] font-medium text-muted-foreground sm:flex-row-reverse sm:gap-2 sm:text-sm sm:text-foreground">
+              {!p.nonBill && <label className="flex shrink-0 flex-col items-center gap-0.5 text-[11px] font-medium text-muted-foreground sm:flex-row-reverse sm:gap-2 sm:text-sm sm:text-foreground">
                 <span>{at("show")}</span>
                 <Switch
                   checked
@@ -195,7 +202,7 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
                     toast(total ? `${proj} hidden from your list. Its hours stay on the timecard.` : `${proj} hidden from your timecard.`, { action: { label: "Undo", onClick: () => setHidden(proj, false) } })
                   }}
                 />
-              </label>
+              </label>}
             </div>
             {/* One line per task, each with its own week strip; the project total sums the lines. */}
             {lines.map((r, li) => {
@@ -232,7 +239,7 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
             <div className="mt-3 flex min-h-9 items-center justify-between gap-3 border-t pt-2">
               <AddTaskButton proj={proj} lines={lines} disabled={locked} />
               <p className="ml-auto shrink-0 text-sm text-muted-foreground">
-                {at("projectTotal")} <output className="ml-1 text-base font-semibold text-foreground tabular-nums">{fmtH(total, lang)} h</output>
+                {p.nonBill ? "Non-billable total" : at("projectTotal")} <output className="ml-1 text-base font-semibold text-foreground tabular-nums">{fmtH(total, lang)} h</output>
               </p>
             </div>
           </li>
@@ -258,7 +265,7 @@ export default function ProjectHoursView() {
   const saveDraft = useDemo(st => st.saveGridDraft)
   const [strict, setStrict] = useState(false)
   const [manageOpen, setManageOpen] = useState(false)
-  const [addOpen, setAddOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState<false | "project" | "other">(false)
   const [showHidden, setShowHidden] = useState(false)
 
   useEffect(() => { setStrict(false) }, [emp, off])
@@ -268,6 +275,7 @@ export default function ProjectHoursView() {
   const visible = rows.filter(r => !isHidden(s, emp, r.proj) || rowTotal(r.h) > 0)
   const hiddenCodes = assigned(s, emp).filter(c => isHidden(s, emp, c) && !visible.some(r => r.proj === c))
   const weekTotal = v.dayTot.reduce((a, b) => a + b, 0)
+  const nonBillTotal = rows.filter(r => PROJECTS[r.proj].nonBill).reduce((a, r) => a + rowTotal(r.h), 0)
   // Unsent changes live on the lines, so leaving the screen never loses them or marks them as sent.
   const unsent = rows.filter(r => r.unsent && r.status !== "Approved").length
 
@@ -296,7 +304,7 @@ export default function ProjectHoursView() {
       const week = x.grid[emp][pk]
       prev.rows.forEach(r => {
         if (r.archived) return
-        if (!PROJECTS[r.proj].active || !assigned(x as typeof s, emp).includes(r.proj)) { skipped++; return }
+        if (!PROJECTS[r.proj].active || (!PROJECTS[r.proj].nonBill && !assigned(x as typeof s, emp).includes(r.proj))) { skipped++; return }
         // Match the task line too, so each task copies onto its own line.
         const existing = week.rows.find(y => y.proj === r.proj && !y.archived && (y.task === r.task || !y.task))
         if (existing) {
@@ -333,7 +341,8 @@ export default function ProjectHoursView() {
         <h2 className="flex items-center gap-2 text-lg font-semibold">{at("assignedProjects")} <JourneyTags ids="GR-03,GR-04" /></h2>
         {/* Phone: one primary button plus a "more" menu, so nothing runs off the screen. */}
         <div className="flex w-full gap-2 sm:hidden">
-          <Button className="h-10 flex-1" onClick={() => setAddOpen(true)} disabled={locked}><Plus /> {at("addProject")}</Button>
+          <Button className="h-10 flex-1" onClick={() => setAddOpen("project")} disabled={locked}><Plus /> {at("addProject")}</Button>
+          <Button variant="outline" className="h-10" onClick={() => setAddOpen("other")} disabled={locked}><Coffee /> Other time</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="size-10" aria-label={at("moreActions")}><MoreHorizontal /></Button>
@@ -369,7 +378,8 @@ export default function ProjectHoursView() {
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={copyLastWeek} disabled={locked}><Copy /> {at("copyLastWeek")}</Button>
-          <Button size="sm" onClick={() => setAddOpen(true)} disabled={locked}><Plus /> {at("addProject")}</Button>
+          <Button variant="outline" size="sm" onClick={() => setAddOpen("other")} disabled={locked}><Coffee /> Other time</Button>
+          <Button size="sm" onClick={() => setAddOpen("project")} disabled={locked}><Plus /> {at("addProject")}</Button>
         </div>
       </div>
 
@@ -418,6 +428,7 @@ export default function ProjectHoursView() {
           <div>
             <div className="text-xs text-muted-foreground">{at("weekTotal")}</div>
             <div className="text-base font-semibold tabular-nums">{fmtH(weekTotal, lang)} h</div>
+            {nonBillTotal > 0 && <div className="text-xs text-muted-foreground tabular-nums">{fmtH(weekTotal - nonBillTotal, lang)} billable · {fmtH(nonBillTotal, lang)} non-billable</div>}
           </div>
           <p className="hidden flex-1 text-xs text-muted-foreground md:block">
             {unsent
@@ -439,8 +450,9 @@ export default function ProjectHoursView() {
 
       <ManageProjectsPanel open={manageOpen} onOpenChange={setManageOpen} />
       <AddRowPanel
-        open={addOpen}
-        onOpenChange={setAddOpen}
+        open={!!addOpen}
+        initialKind={addOpen || "project"}
+        onOpenChange={o => setAddOpen(o ? addOpen || "project" : false)}
         onAdded={id => setTimeout(() => [...document.querySelectorAll<HTMLElement>(`[data-row="${id}"]`)].find(el => el.offsetParent)?.scrollIntoView({ behavior: "smooth", block: "center" }), 80)}
       />
     </div>
