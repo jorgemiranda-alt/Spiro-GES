@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import { Coffee, Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, Send, SlidersHorizontal } from "lucide-react"
+import { Coffee, Copy, Eye, EyeOff, MoreHorizontal, Plus, Save, Send, SlidersHorizontal, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
@@ -61,7 +62,15 @@ function TaskSelect({ row, siblings = [], editable, invalid, quiet }: { row: Gri
   const options = p.tasks.filter(x => x === row.task || !siblings.some(r => r.id !== row.id && r.task === x))
   if (p.tasks.length < 2 && !p.taskReq) return row.task ? (quiet ? <span className="truncate text-sm text-muted-foreground">{row.task}</span> : <MetaTag>{t("task")}: {row.task}</MetaTag>) : null
   // Each line is one task, chosen when the line is added; only a line still missing its task needs a picker.
-  if (row.task) return <span className={cn("truncate", quiet ? "text-sm font-medium" : "font-medium")}>{row.task}</span>
+  if (row.task) {
+    // Other time stores "Group › Activity": lead with the activity, keep the group as context.
+    const [group, name] = row.task.includes(" › ") ? row.task.split(" › ") : ["", row.task]
+    return (
+      <span className={cn("min-w-0 truncate", quiet ? "text-sm font-medium" : "font-medium")} title={row.task}>
+        {name}{group && <span className="font-normal text-muted-foreground"> · {group}</span>}
+      </span>
+    )
+  }
   return (
     <Select value={row.task} onValueChange={v => setTask(row.id, v)} disabled={!editable}>
       <SelectTrigger size="sm" aria-label={`${row.proj} ${t("task")}`} aria-invalid={invalid || undefined} className={cn(
@@ -74,6 +83,52 @@ function TaskSelect({ row, siblings = [], editable, invalid, quiet }: { row: Gri
       </SelectTrigger>
       <SelectContent>{options.map(x => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
     </Select>
+  )
+}
+
+/** Removes one line after a confirmation; Undo in the toast restores it with its hours. Approved or locked lines can't be removed. */
+function RemoveLineButton({ row, editable }: { row: GridRow; editable: boolean }) {
+  const setRemoved = useDemo(st => st.setGridRowRemoved)
+  const { lang, t } = useT()
+  const [open, setOpen] = useState(false)
+  if (!editable) return null
+  const label = row.task ? (row.task.split(" › ").at(-1) as string) : row.proj
+  const h = rowTotal(row.h)
+  const where = PROJECTS[row.proj].nonBill ? "Other time" : `${row.proj} · ${PROJECTS[row.proj].name}`
+  const remove = () => {
+    setOpen(false)
+    setRemoved(row.id, true)
+    toast(`Removed ${label}${h ? ` · ${fmtH(h, lang)} h` : ""}.`, { action: { label: "Undo", onClick: () => setRemoved(row.id, false) } })
+  }
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-9 shrink-0 text-muted-foreground hover:bg-destructive-soft hover:text-destructive"
+        aria-label={`Remove ${label}`}
+        title={`Remove ${label}`}
+        onClick={() => setOpen(true)}
+      >
+        <X />
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent role="alertdialog" className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove {label}?</DialogTitle>
+            <DialogDescription>
+              {h
+                ? <>This removes the line from {where} for this week, including <b className="font-semibold text-foreground tabular-nums">{fmtH(h, lang)} h</b> you entered.</>
+                : <>This removes the line from {where} for this week. No hours are entered on it.</>}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" size="lg" onClick={() => setOpen(false)} autoFocus>{t("cancel")}</Button>
+            <Button variant="destructive" size="lg" onClick={remove}>Remove line</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
@@ -92,9 +147,11 @@ const BillTag = ({ proj }: { proj: string }) => PROJECTS[proj].nonBill
   : null
 
 /** Adds a line for a task not yet on this project, picked from a short menu. */
-function AddTaskButton({ proj, lines, disabled }: { proj: string; lines: GridRow[]; disabled: boolean }) {
+function AddTaskButton({ proj, lines, disabled, onOther }: { proj: string; lines: GridRow[]; disabled: boolean; onOther?: () => void }) {
   const addTask = useDemo(st => st.addGridTask)
   const { at } = useT()
+  // Other time has 30 activities: open the searchable panel instead of a long menu.
+  if (PROJECTS[proj].nonBill) return onOther ? <Button variant="ghost" size="sm" className="-ml-2 text-primary" disabled={disabled} onClick={onOther}><Plus /> Add activity</Button> : null
   const free = PROJECTS[proj].tasks.filter(x => !lines.some(r => r.task === x))
   if (PROJECTS[proj].tasks.length < 2 || !free.length) return null
   return (
@@ -109,7 +166,7 @@ function AddTaskButton({ proj, lines, disabled }: { proj: string; lines: GridRow
   )
 }
 
-function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; locked: boolean }) {
+function ClassicGrid({ rows, days, editable, v, onHours, locked, onOther }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; locked: boolean; onOther: () => void }) {
   const { lang, t, at } = useT()
   const cols = days.map((d, i) => ({ d, i }))
   return (
@@ -138,9 +195,10 @@ function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridR
               ...lines.map(r => (
                 <tr key={r.id} data-row={r.id} className={cn(r.status === "Rejected" && "bg-destructive-soft/40")}>
                   <th scope="row" className="sticky left-0 z-10 bg-card py-1.5 pr-4 pl-7 text-left align-middle font-normal">
-                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    <div className="flex min-w-0 items-center gap-1.5">
                       <TaskSelect row={r} siblings={lines} editable={editable(r)} invalid={v.badTask.has(r.id)} />
                       {r.status !== "Draft" && r.status !== "Recorded" && <StatusPill tone={rowTone(r.status)}>{r.status}</StatusPill>}
+                      <span className="ml-auto"><RemoveLineButton row={r} editable={editable(r)} /></span>
                     </div>
                     {r.note && <p className="mt-1.5 text-xs text-destructive"><b>Note from approver:</b> {r.note}</p>}
                   </th>
@@ -154,7 +212,7 @@ function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridR
               )),
               <tr key={`${proj}-total`} className="text-sm">
                 <th scope="row" className="sticky left-0 z-10 bg-card py-1 pr-4 pl-7 text-left align-middle font-normal">
-                  <AddTaskButton proj={proj} lines={lines} disabled={locked} />
+                  <AddTaskButton proj={proj} lines={lines} disabled={locked} onOther={onOther} />
                 </th>
                 <td colSpan={cols.length} className="px-1 py-1 text-right align-middle text-muted-foreground">{lines.length > 1 ? (PROJECTS[proj].nonBill ? "Non-billable total" : at("projectTotal")) : ""}</td>
                 <td className="px-4 py-1 text-right align-middle font-semibold tabular-nums">{lines.length > 1 ? fmtH(total, lang) : ""}</td>
@@ -177,7 +235,7 @@ function ClassicGrid({ rows, days, editable, v, onHours, locked }: { rows: GridR
   )
 }
 
-function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; locked: boolean }) {
+function ModernCards({ rows, days, editable, v, onHours, locked, onOther }: { rows: GridRow[]; days: string[]; editable: (r: GridRow) => boolean; v: GridValidation; onHours: RowProps["onHours"]; locked: boolean; onOther: () => void }) {
   const setHidden = useDemo(st => st.setProjectHidden)
   const { lang, at } = useT()
   return (
@@ -190,7 +248,7 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
               <span className={cn("mt-2 size-2 shrink-0 rounded-full", total ? "bg-success" : "bg-input")} aria-hidden />
               <div className="min-w-0 flex-1">
                 <h3 className="text-[15px] leading-snug font-semibold">{proj === OTHER_TIME ? p.name : <><span className="tabular-nums">{proj}</span> · {p.name}</>}<BillTag proj={proj} /></h3>
-                <p className="truncate text-sm text-muted-foreground">{p.nonBill ? "Meetings, training, admin · approved by your manager" : [p.client, p.show !== "—" && p.show].filter(Boolean).join(" · ")}</p>
+                <p className="truncate text-sm text-muted-foreground">{p.nonBill ? "Meetings, training, admin · not billed" : [p.client, p.show !== "—" && p.show].filter(Boolean).join(" · ")}</p>
               </div>
               {!p.nonBill && <label className="flex shrink-0 flex-col items-center gap-0.5 text-[11px] font-medium text-muted-foreground sm:flex-row-reverse sm:gap-2 sm:text-sm sm:text-foreground">
                 <span>{at("show")}</span>
@@ -216,7 +274,10 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
                       {/* Draft and Recorded (salaried time needs no approval) say nothing new, so only a decision earns a pill. */}
                       {r.status !== "Draft" && r.status !== "Recorded" && <StatusPill tone={rowTone(r.status)}>{r.status}</StatusPill>}
                     </div>
-                    <output className="shrink-0 text-sm font-medium tabular-nums">{fmtH(rowTotal(r.h), lang)} h</output>
+                    <div className="-mr-2 flex shrink-0 items-center gap-1">
+                      <output className="text-sm font-medium tabular-nums">{fmtH(rowTotal(r.h), lang)} h</output>
+                      <RemoveLineButton row={r} editable={ed} />
+                    </div>
                   </div>
                   {/* The whole week, Monday to Sunday, in one row — like a native week strip. */}
                   <div className="mt-2 grid grid-cols-7 gap-1 sm:gap-2">
@@ -237,7 +298,7 @@ function ModernCards({ rows, days, editable, v, onHours, locked }: { rows: GridR
               )
             })}
             <div className="mt-3 flex min-h-9 items-center justify-between gap-3 border-t pt-2">
-              <AddTaskButton proj={proj} lines={lines} disabled={locked} />
+              <AddTaskButton proj={proj} lines={lines} disabled={locked} onOther={onOther} />
               <p className="ml-auto shrink-0 text-sm text-muted-foreground">
                 {p.nonBill ? "Non-billable total" : at("projectTotal")} <output className="ml-1 text-base font-semibold text-foreground tabular-nums">{fmtH(total, lang)} h</output>
               </p>
@@ -387,12 +448,12 @@ export default function ProjectHoursView() {
 
       <Highlightable hl="grid">
         {modern ? (
-          <ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} />
+          <ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} onOther={() => setAddOpen("other")} />
         ) : (
           <>
             {/* Phone: the wide grid can't fit, so Classic shows the same week cards as Modern. */}
-            <div className="sm:hidden"><ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} /></div>
-            <div className="max-sm:hidden"><ClassicGrid rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} /></div>
+            <div className="sm:hidden"><ModernCards rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} onOther={() => setAddOpen("other")} /></div>
+            <div className="max-sm:hidden"><ClassicGrid rows={visible} days={days} editable={editable} v={v} onHours={onHours} locked={locked} onOther={() => setAddOpen("other")} /></div>
           </>
         )}
         {modern && !visible.length && (
@@ -428,7 +489,7 @@ export default function ProjectHoursView() {
           <div>
             <div className="text-xs text-muted-foreground">{at("weekTotal")}</div>
             <div className="text-base font-semibold tabular-nums">{fmtH(weekTotal, lang)} h</div>
-            {nonBillTotal > 0 && <div className="text-xs text-muted-foreground tabular-nums">{fmtH(weekTotal - nonBillTotal, lang)} billable · {fmtH(nonBillTotal, lang)} non-billable</div>}
+            {nonBillTotal > 0 && <div className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">incl. {fmtH(nonBillTotal, lang)} h non-billable</div>}
           </div>
           <p className="hidden flex-1 text-xs text-muted-foreground md:block">
             {unsent

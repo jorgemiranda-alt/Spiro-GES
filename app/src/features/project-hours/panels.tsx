@@ -1,13 +1,16 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Check } from "lucide-react"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Switch } from "@/components/ui/switch"
 import { ResponsivePanel } from "@/components/app/responsive-panel"
 import { Notice, StatusPill } from "@/components/app/status"
 import { ACTIVITIES, APPROVERS, LABOR, OTHER_TIME, PAYCODES, PROJECTS } from "@/data/reference-data"
-import { assigned, isHidden, laborDefaults, startNote } from "@/lib/engine"
+import { assigned, gridWeekOf, isHidden, laborDefaults, startNote } from "@/lib/engine"
+import { cn } from "@/lib/utils"
 import { useT } from "@/lib/i18n"
 import { useDemo } from "@/store/store"
 
@@ -57,6 +60,55 @@ export function ManageProjectsPanel({ open, onOpenChange }: { open: boolean; onO
   )
 }
 
+/** Every activity as one flat entry; the value is what the grid row stores ("Group › Activity"). */
+const ACTIVITY_LIST = ACTIVITIES.flatMap(g => g.items.length
+  ? g.items.map(i => ({ v: `${g.group} › ${i.name}`, group: g.group, name: i.name, def: i.def }))
+  : [{ v: g.group, group: "", name: g.group, def: g.def || "" }])
+
+/**
+ * Searchable, always-open list: 30 activities are too many for a plain dropdown, and three
+ * share the name "Travel", so each row carries its group and definition. Recently used first.
+ */
+function ActivityPicker({ value, onChange, recent, onWeek }: { value: string; onChange: (v: string) => void; recent: string[]; onWeek: Set<string> }) {
+  const row = (a: (typeof ACTIVITY_LIST)[number], key: string) => {
+    const taken = onWeek.has(a.v)
+    return (
+      <CommandItem
+        key={key}
+        value={`${key} ${a.group} ${a.name} ${a.def}`}
+        disabled={taken}
+        onSelect={() => onChange(a.v)}
+        className={cn("min-h-12 items-start gap-2.5 rounded-lg py-2", value === a.v && "bg-accent")}
+      >
+        <Check className={cn("mt-0.5 size-4 shrink-0 text-primary", value === a.v ? "opacity-100" : "opacity-0")} aria-hidden />
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium">{a.name}</span>
+          {a.def && <span className="block text-xs leading-snug text-muted-foreground">{a.def}</span>}
+        </span>
+        {taken && <span className="shrink-0 text-xs text-muted-foreground">On timecard</span>}
+      </CommandItem>
+    )
+  }
+  const recentItems = recent.map(v => ACTIVITY_LIST.find(a => a.v === v)).filter(a => !!a)
+  return (
+    <Command className="rounded-xl border bg-card" loop filter={(value, search) => (value.toLowerCase().includes(search.trim().toLowerCase()) ? 1 : 0)}>
+      {/* Focus search on desktop only: on phones the keyboard would cover the list. */}
+      <CommandInput placeholder="Search activities, e.g. training, travel" aria-label="Search activities" autoFocus={typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches} />
+      <CommandList className="max-h-[min(22rem,45dvh)] scroll-py-2 p-1">
+        <CommandEmpty>No activity matches. Try a broader word, like meeting.</CommandEmpty>
+        {recentItems.length > 0 && (
+          <CommandGroup heading="Recently used">{recentItems.map(a => row(a, `recent:${a.v}`))}</CommandGroup>
+        )}
+        {ACTIVITIES.map(g => (
+          <CommandGroup key={g.group} heading={g.items.length ? g.group : undefined}>
+            {ACTIVITY_LIST.filter(a => a.v === g.group || a.group === g.group).map(a => row(a, a.v))}
+          </CommandGroup>
+        ))}
+      </CommandList>
+    </Command>
+  )
+}
+
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
@@ -87,7 +139,11 @@ export function AddRowPanel({ open, onOpenChange, onAdded, initialKind = "projec
   const other = kind === "other"
   const target = other ? OTHER_TIME : proj
   const pr = target ? PROJECTS[target] : null
-  const activity = other ? ACTIVITIES.flatMap(g => g.items.length ? g.items.map(i => ({ v: `${g.group} › ${i.name}`, def: i.def })) : [{ v: g.group, def: g.def || "" }]).find(a => a.v === task) : undefined
+  const activity = other ? ACTIVITY_LIST.find(a => a.v === task) : undefined
+  // Recent = last week's activities not yet on this week; ones already on this week can't be added twice.
+  const weekRows = (off: number) => gridWeekOf(s, emp, s.period + off).rows.filter(r => r.proj === OTHER_TIME && !r.archived && r.task)
+  const onWeek = new Set(weekRows(0).map(r => r.task))
+  const recent = [...new Set(weekRows(-1).map(r => r.task))].filter(v => !onWeek.has(v)).slice(0, 3)
   const codes = assigned(s, emp)
 
   const apply = () => {
@@ -120,7 +176,7 @@ export function AddRowPanel({ open, onOpenChange, onAdded, initialKind = "projec
       footer={
         <>
           <Button variant="outline" size="lg" onClick={() => onOpenChange(false)}>{t("cancel")}</Button>
-          <Button size="lg" onClick={apply} disabled={busy}>{busy ? "Checking with UKG…" : other ? "Add other time" : at("addProject")}</Button>
+          <Button size="lg" onClick={apply} disabled={busy}>{busy ? "Checking with UKG…" : other ? "Add activity" : at("addProject")}</Button>
         </>
       }
     >
@@ -132,23 +188,14 @@ export function AddRowPanel({ open, onOpenChange, onAdded, initialKind = "projec
         {err && <Notice tone="danger">{err}</Notice>}
         {other ? (
           <>
-            <Field label="Activity" required>
-              <Select value={task} onValueChange={setTask}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {ACTIVITIES.map(g => g.items.length ? (
-                    <SelectGroup key={g.group}>
-                      <SelectLabel>{g.group}</SelectLabel>
-                      {g.items.map(i => <SelectItem key={i.name} value={`${g.group} › ${i.name}`} className="pl-4">{i.name}</SelectItem>)}
-                    </SelectGroup>
-                  ) : (
-                    <SelectItem key={g.group} value={g.group}>{g.group}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            {activity?.def && <p className="-mt-2 text-sm text-muted-foreground">{activity.def}</p>}
-            <p className="text-sm text-muted-foreground">No project needed. Approved by your manager ({APPROVERS[PROJECTS[OTHER_TIME].approver]}) and sent to UKG, not Odoo.</p>
+            <div className="space-y-1.5">
+              <span className="text-sm font-medium">Activity<span className="text-destructive"> *</span></span>
+              <ActivityPicker value={task} onChange={v => { setTask(v); setErr("") }} recent={recent} onWeek={onWeek} />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {activity ? <><b className="font-medium text-foreground">{activity.group ? `${activity.group} › ` : ""}{activity.name}</b> · </> : null}
+              No project needed. Approved by {APPROVERS[PROJECTS[OTHER_TIME].approver]}, your manager, and sent to UKG only.
+            </p>
           </>
         ) : (<>
         <Field label={t("project")} required>

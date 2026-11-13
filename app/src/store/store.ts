@@ -32,6 +32,8 @@ interface Store {
   addOdooProject: (code: string) => boolean
   setGridHours: (rowId: string, day: number, value: string) => void
   setGridTask: (rowId: string, task: string) => void
+  /** Removes one task/activity line from the week (kept as archived so Undo can bring it back). */
+  setGridRowRemoved: (rowId: string, removed: boolean) => void
   /** Adds another task line to a project already on the week; returns the new line id. */
   addGridTask: (proj: string, task?: string) => string | null
   /** Keeps the week's entries as a draft without sending anything to UKG. */
@@ -250,6 +252,12 @@ export const useDemo = create<Store>((set, get) => {
     setGridTask: (rowId, task) => mutate(s => {
       const r = ensureGrid(s, s.persona, s.period).rows.find(x => x.id === rowId)
       if (r) { r.task = task; r.unsent = true }
+    }),
+    setGridRowRemoved: (rowId, removed) => mutate(s => {
+      const emp = s.persona, r = ensureGrid(s, emp, s.period).rows.find(x => x.id === rowId)
+      if (!r || r.status === "Approved") return
+      r.archived = removed
+      s.audit.unshift({ ts: nowTs(), who: PERSONAS[emp].name, emp, what: `${removed ? "Removed" : "Restored"} line ${r.proj}${r.task ? ` / ${r.task}` : ""}`, detail: "", reason: "" })
     }),
     addGridTask: (proj, chosen) => {
       const s = get().s, g = gridWeekOf(s, s.persona, s.period)
